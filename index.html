@@ -1,0 +1,504 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>The Little Universe of Amma</title>
+<style>
+:root{--ink:#5b4660;--cream:#fff6ee;--pink:#f4b6c8;--lav:#d6c8f0;--sage:#a9c4a3;--gold:#e8c27a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:#150f1e;overflow:hidden;font-family:Georgia,'Times New Roman',serif;color:var(--ink);touch-action:none;user-select:none}
+#stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}canvas{width:100%;height:100%;display:block}
+#ti{position:absolute;inset:0;pointer-events:none;text-align:center;color:#fff6ee}
+#ti h1{position:absolute;top:3%;width:100%;margin:0;font-size:2.6em;letter-spacing:.06em;font-weight:normal;text-shadow:0 0 18px #f4b6c8,0 0 4px #e8c27a;opacity:0;transition:opacity 2.5s}
+#ti p{position:absolute;bottom:11%;left:12%;right:12%;margin:0;font-size:1.15em;line-height:1.6;opacity:0;transition:opacity 2.5s}
+#ti em{position:absolute;bottom:4%;width:100%;font-size:.95em;opacity:0;transition:opacity 2s;color:#f3e3ff}
+.on{opacity:1!important}
+.panel{position:fixed;background:rgba(255,246,238,.88);border:1px solid var(--gold);border-radius:14px;padding:8px 10px;font-size:13px;box-shadow:0 4px 18px rgba(90,60,100,.25)}
+#hud{left:8px;top:8px;cursor:pointer;max-width:210px}#obj{left:8px;bottom:8px}
+#tools{position:fixed;right:8px;top:8px;display:flex;gap:6px;align-items:center}
+button{font:inherit;color:var(--ink);background:var(--cream);border:1px solid var(--gold);border-radius:20px;padding:9px 16px;cursor:pointer;min-height:40px}
+button:hover{background:#ffe9ef}input[type=range]{width:80px;accent-color:#d98aa8}
+#pr{position:fixed;left:50%;bottom:14%;transform:translateX(-50%);box-shadow:0 0 14px #f4b6c8}
+#m{position:fixed;inset:0;background:rgba(40,25,50,.45);display:flex;align-items:center;justify-content:center;z-index:5;padding:12px}
+.card{background:linear-gradient(#fff9f3,#fbeaf0);border:2px solid var(--gold);border-radius:20px;padding:22px;max-width:420px;max-height:92vh;overflow:auto;text-align:center;line-height:1.5;font-size:16px;animation:in .6s}
+.card h2{margin:.2em 0 .4em;font-weight:normal}.card .l{opacity:0;animation:in 1.2s forwards}.bt{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#toast{position:fixed;top:14%;left:50%;transform:translateX(-50%);background:var(--cream);border:1px solid var(--gold);border-radius:20px;padding:10px 18px;opacity:0;transition:opacity .6s;pointer-events:none;z-index:6;text-align:center;max-width:80vw}
+#fade{position:fixed;inset:0;background:#150f1e;opacity:0;pointer-events:none;transition:opacity .6s;z-index:9}
+.tile{width:64px;height:64px;padding:4px}.sel{box-shadow:0 0 12px 3px #e8c27a}.bloom{animation:bl 1.4s}@keyframes bl{50%{transform:scale(1.12);filter:drop-shadow(0 0 14px #ffd98a)}}
+.row{display:flex;justify-content:space-between;gap:10px;padding:8px;border-radius:10px;margin:4px 0;cursor:pointer;background:#fff}
+[hidden]{display:none!important}
+#hud,#obj{display:none!important}
+#ti{position:fixed;inset:0;z-index:3;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;row-gap:clamp(6px,1.6vh,14px);justify-items:center;box-sizing:border-box;padding:clamp(10px,3vh,28px) 16px calc(clamp(10px,2.4vh,22px) + env(safe-area-inset-bottom,0px));overflow:hidden;pointer-events:auto;background:#0b0f2a}
+#ti::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,.014) 0 2px,transparent 2px 4px)}
+#sk{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+#ti h1{position:static;width:auto;max-width:92vw;font-size:clamp(19px,4.6vw,38px);letter-spacing:.07em;line-height:1.25;color:#f0dfc6;text-shadow:0 1px 0 #6b4a3a;text-wrap:balance}
+#sc{position:relative;width:100%;min-height:0}
+#oc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+#ti p{position:static;max-width:min(560px,90vw);font-size:clamp(14px,2.5vw,19px);line-height:1.6;color:#eadcc8;text-wrap:balance;margin:0}
+#ti em{position:static;width:auto;font-size:clamp(12px,1.9vw,14px);color:#c9b8a8}
+#stage{transform:none}
+#tools{left:0;right:0;top:0;height:48px;box-sizing:border-box;padding:0 10px;justify-content:flex-end;background:linear-gradient(#fff6ee,#fbe3ec);border-bottom:1px solid var(--gold);z-index:4}
+#tools button{padding:6px 14px;min-height:36px}
+#m{background:rgba(40,25,50,.32);backdrop-filter:blur(2px)}
+.card{max-width:340px;width:100%;box-sizing:border-box;padding:18px 20px 20px;font-size:15px;border:1px solid var(--gold);border-radius:22px;background:linear-gradient(#fffaf4,#fdeef2);box-shadow:0 0 0 5px rgba(255,246,238,.55),0 12px 30px rgba(90,60,100,.3);animation:pop .45s}
+.card::before{content:'✿ ✦ ✿';display:block;color:#e3a9bf;letter-spacing:.4em;font-size:12px}
+.card h2{font-size:1.25em;margin:.3em 0 .5em}
+.card button{background:linear-gradient(#fffaf4,#ffe3ec);box-shadow:0 2px 6px rgba(200,120,150,.25)}
+#pz{position:relative}#pz svg{filter:drop-shadow(0 4px 8px rgba(200,120,150,.35))}
+.sp{position:absolute;top:40%;color:#e8b64a;font-style:normal;animation:fl 2s forwards}
+@keyframes fl{from{opacity:1}to{opacity:0;transform:translateY(-70px)}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@media(max-width:520px){#tools{gap:4px;padding:0 4px}#tools button{padding:5px 8px;min-height:36px;font-size:13px}#tools input{width:48px}.card{padding:14px 14px 16px;font-size:14px}}
+</style></head><body>
+<div id="stage"><canvas id="c" width="800" height="480"></canvas></div>
+<div id="ti"><canvas id="sk"></canvas><h1>THE LITTLE UNIVERSE OF AMMA</h1><div id="sc"><canvas id="oc" width="1040" height="1120"></canvas></div><p>Because somewhere in this universe lives someone who deserves all the magic in the world</p><em>Tap anywhere to continue</em></div>
+<div id="hud" class="panel" hidden></div><div id="obj" class="panel" hidden></div>
+<div id="tools" hidden><button id="bmap">Map</button><button id="bgoal">Goals</button><button id="inv" title="Collection">✿</button><button id="snd" title="Mute or unmute">♪</button><input id="vol" type="range" min="0" max="1" step=".05" title="Volume" aria-label="Volume"><button id="mnu" title="Menu">☰</button></div>
+<button id="pr" hidden></button><div id="m" hidden></div><div id="toast"></div><div id="fade"></div>
+<script>
+let $=s=>document.querySelector(s),W=800,H=480,cv=$('#c'),c=cv.getContext('2d'),K='amma-v1';
+let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
+S=Object.assign({intro:0,loc:'garden',done:[],unl:['garden'],puz:0,heart:0,star:0,ex:{flower:0,pond:0,orn:0},wel:0,vol:.6,mute:0},S);
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const LOCS=[['garden','The Blooming Garden'],['home','The Cozy Little Home'],['forest','The Whispering Forest'],['hill','The Hill of a Thousand Stars']];
+const st=id=>S.done.includes(id)?'Completed':S.loc===id?'Current':S.unl.includes(id)?'Unlocked':'Locked';
+const R=(a,b)=>a+Math.random()*(b-a);
+/* ---------- AUDIO (Web Audio synth: original, royalty-free, no files) ---------- */
+let AC,mg,bus,mus,NB,shift=0,spb=.5,nextT=0,bar=0,stp=0;
+const N=m=>440*2**((m-69)/12);
+const CH=[[48,52,55],[45,48,52],[41,45,48],[43,47,50]],ML=[[72,0,67,0,64,0,67,0],[69,0,72,0,76,0,72,0],[69,0,0,67,0,64,0,0],[67,0,71,0,74,0,0,0]];
+function aInit(){if(AC){AC.resume&&AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)();mg=AC.createGain();mg.gain.value=0;mg.connect(AC.destination);bus=AC.createGain();mus=AC.createGain();mus.connect(bus);bus.connect(mg);
+const d=AC.createDelay();d.delayTime.value=.34;const fb=AC.createGain(),w=AC.createGain();fb.gain.value=.35;w.gain.value=.3;bus.connect(d);d.connect(fb);fb.connect(d);d.connect(w);w.connect(mg);
+NB=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const nd=NB.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+const a=AC.createBufferSource();a.buffer=NB;a.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=700;const g=AC.createGain();g.gain.value=.012;a.connect(f);f.connect(g);g.connect(mg);a.start();
+nextT=AC.currentTime+.3;setInterval(sched,120);vol()}catch(e){AC=null}}
+function vol(){if(AC)mg.gain.setTargetAtTime(S.mute?0:S.vol*.5,AC.currentTime,.3)}
+function tone(m,t,o={}){if(!AC)return;const d=o.d||1.4,g=AC.createGain(),os=AC.createOscillator();os.type=o.type||'sine';os.frequency.value=N(m);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(o.v||.08,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);os.connect(g);g.connect(o.m?mus:bus);os.start(t);os.stop(t+d+.05)}
+function noise(t,d,f0,f1,v){if(!AC)return;const s=AC.createBufferSource();s.buffer=NB;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(f0,t);f.frequency.exponentialRampToValueAtTime(f1,t+d);const g=AC.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+d*.3);g.gain.linearRampToValueAtTime(0,t+d);s.connect(f);f.connect(g);g.connect(bus);s.start(t,Math.random());s.stop(t+d+.1)}
+function sched(){if(!AC||AC.state!=='running')return;while(nextT<AC.currentTime+.5){const b=bar%4,sh=shift;
+if(stp===0||stp===4)CH[b].forEach((m,i)=>tone(m+sh,nextT+i*.04,{type:'triangle',v:.05,d:2.2,m:1}));
+if(stp===0)tone(CH[b][0]-12+sh,nextT,{v:.06,d:2.5,m:1});
+const m=ML[b][stp];if(m){tone(m+sh+12,nextT,{v:.035,d:1.1,m:1});tone(m+sh+24,nextT,{v:.008,d:.5,m:1})}
+nextT+=spb;if(++stp>7){stp=0;bar++}}}
+function setLoc(l){if(!AC)return;mus.gain.setTargetAtTime(0,AC.currentTime,.3);setTimeout(()=>{shift=l==='garden'?0:5;spb=l==='garden'?.5:.56;mus.gain.setTargetAtTime(1,AC.currentTime,.6)},1000)}
+function chime(a,gap,v=.06){if(!AC)return;a.forEach((m,i)=>tone(m,AC.currentTime+i*gap,{v,d:1.6,type:i%2?'sine':'triangle'}))}
+const SFX={step:()=>noise(AC.currentTime,.08,350,200,.025),spark:()=>chime([96+(R(0,4)|0),100],.07,.02),pick:()=>tone(79,AC.currentTime,{v:.05,d:.5}),
+place:()=>chime([76,83],.09),oops:()=>tone(64,AC.currentTime,{v:.03,d:.6,type:'triangle'}),bloom:()=>chime([72,76,79,83,88],.13),
+heart:()=>chime([67,72,76,79,84],.2),star:()=>chime([72,79,84,88,91],.15),ach:()=>chime([72,76,79,84,88,91,96],.17,.07),
+fly:()=>{chime([88+(R(0,5)|0),93],.1,.015)},door:()=>{noise(AC.currentTime,3,120,500,.05);chime([60,67,72,76],.5,.05)},
+unlock:()=>{noise(AC.currentTime,1.5,300,900,.03);chime([72,76,79,84,88],.2,.06)},pop:()=>tone(84,AC.currentTime,{v:.03,d:.4})};
+const sfx=n=>{try{AC&&!S.mute&&SFX[n]()}catch(e){}};
+addEventListener('pointerdown',aInit,{once:true});addEventListener('keydown',aInit,{once:true});
+/* ---------- UI helpers ---------- */
+let modalOpen=false,closable=true;
+function modal(html,btns,cl=true){const m=$('#m');m.innerHTML='<div class=card>'+html+'<div class=bt></div></div>';btns.forEach(([t,f])=>{const b=document.createElement('button');b.textContent=t;b.onclick=f;m.querySelector('.bt').append(b)});m.hidden=false;modalOpen=true;closable=cl}
+function closeM(){$('#m').hidden=true;modalOpen=false;$('#m').innerHTML=''}
+let tt;function toast(t,ms=3000){const e=$('#toast');e.textContent=t;e.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>e.style.opacity=0,ms)}
+function fade(fn){const f=$('#fade');f.style.opacity=1;setTimeout(()=>{fn();f.style.opacity=0},650)}
+function hud(){const dn=S.done.length;$('#hud').innerHTML=`<b>Adventure map</b> ✦ tap to open<br>Worlds completed: ${dn}/4<br>Locations remaining: ${4-dn}<br>`+LOCS.map(l=>`${{Completed:'✓',Current:'♡',Unlocked:'◇',Locked:'🔒'}[st(l[0])]} <span style="opacity:${st(l[0])=='Locked'?.5:1}">${l[1]}</span>`).join('<br>');
+const g=S.done.includes('garden');$('#obj').innerHTML=`<b>Garden</b> ${g?'Completed ✓':'In progress'}<br>Puzzle: ${S.puz?'Solved':'Not solved'}<br>Heart: ${S.heart?'Collected':S.puz?'Revealed':'Hidden'}<br>Star: ${S.star?'Collected':S.heart?'Revealed':'Hidden'}<br>Flower ${S.ex.flower?'✓':'○'} Fountain ${S.ex.pond?'✓':'○'} Sparkle stone ${S.ex.orn?'✓':'○'}`}
+$('#bmap').onclick=()=>{modal('<h2>The Little Universe</h2><p>Worlds completed: '+S.done.length+'/4 · Locations remaining: '+(4-S.done.length)+'</p>'+LOCS.map(l=>{const s=st(l[0]);return `<div class=row data-l="${l[0]}"><span>${s=='Locked'?'🔒':s=='Completed'?'✓':'✿'} ${l[1]}</span><i>${s}</i></div>`}).join('<div style="opacity:.4">│</div>'),[['Close',closeM]]);
+document.querySelectorAll('.row').forEach(r=>r.onclick=()=>{const s=st(r.dataset.l);toast(s=='Locked'?'This door is still closed. Finish the current adventure first ♡':s=='Current'?'You are here ♡':'Open this door from where it waits ♡')})};
+$('#inv').onclick=()=>{modal('<h2>Your collection</h2>'+(S.heart?'<p>♡ The Heart of Welcome</p>':'')+(S.star?'<p>✦ Guardian of the Blooming Garden</p>':'')+(!S.heart&&!S.star?'<p>Nothing yet. Keep exploring!</p>':''),[...(S.heart?[['Read the heart message ♡',heartCard]]:[]),['Close',closeM]])};
+$('#snd').onclick=()=>{S.mute=!S.mute;$('#snd').textContent=S.mute?'🔇':'♪';vol();save()};
+$('#vol').oninput=e=>{S.vol=+e.target.value;if(S.mute&&S.vol>0){S.mute=0;$('#snd').textContent='♪'}vol();save()};
+/* ---------- character ---------- */
+function E(x,y,rx,ry,col){c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,0,0,7);c.fill()}
+function girl(x,y,k,t,mv,dir,up){c.save();c.translate(x,y);c.scale(k*(dir<0?-1:1),k);const sw=mv?Math.sin(t*14)*4:0,bob=mv?Math.abs(Math.sin(t*14))*2:Math.sin(t*2);
+E(0,2,14,5,'rgba(80,60,80,.2)');c.fillStyle='#f6d3c0';c.fillRect(-6+sw*.6,-12,4,12);c.fillRect(2-sw*.6,-12,4,12);E(-5+sw*.6,0,4,2,'#fff');E(5-sw*.6,0,4,2,'#fff');
+c.fillStyle='#f6a9c0';c.beginPath();c.moveTo(-8,-26-bob);c.lineTo(8,-26-bob);c.lineTo(12,-10);c.lineTo(-12,-10);c.fill();E(0,-12,12,2.5,'#fff6ee');
+E(-9,-22-bob,3,3,'#f6d3c0');E(9,-22-bob,3,3,'#f6d3c0');E(0,-37-bob,12.5,11,'#7a5a4f');
+if(!up){E(0,-33-bob,10,9.5,'#f6d3c0');c.fillStyle='#7a5a4f';c.beginPath();c.ellipse(0,-40-bob,11,5.5,0,Math.PI,0);c.fill();
+const bl=(t%4)<.15?.3:1.4;E(-4,-33-bob,1.4,bl,'#4a3040');E(4,-33-bob,1.4,bl,'#4a3040');E(-6.5,-30-bob,2,1.2,'rgba(244,150,170,.6)');E(6.5,-30-bob,2,1.2,'rgba(244,150,170,.6)')}
+else E(0,-33-bob,11,10,'#7a5a4f');c.restore()}
+function door(cx,by,w,h,open,wood,glow){c.save();c.beginPath();c.moveTo(cx-w/2,by);c.lineTo(cx-w/2,by-h+w/2);c.arc(cx,by-h+w/2,w/2,Math.PI,0);c.lineTo(cx+w/2,by);c.closePath();
+c.shadowColor='#ffe8a8';c.shadowBlur=glow;c.fillStyle='#fff3c8';c.fill();c.shadowBlur=0;c.clip();
+if(open>0){const g=c.createLinearGradient(0,by-h,0,by);g.addColorStop(0,'#cfe6ff');g.addColorStop(1,'#bde0b0');c.fillStyle=g;c.fillRect(cx-w/2,by-h,w,h)}
+const pw=w/2*(1-open);[-1,1].forEach(s=>{const x0=s<0?cx-w/2:cx+w/2-pw;c.fillStyle=wood?'#c99a74':'#fbeee4';c.fillRect(x0,by-h,pw,h);if(pw>20){const mx=x0+pw/2;c.strokeStyle='#e8c27a';c.lineWidth=2;c.strokeRect(x0+6,by-h*.6,pw-12,h*.45);c.beginPath();c.moveTo(mx,by-h*.1);c.bezierCurveTo(mx-15,by-h*.3,mx+15,by-h*.4,mx,by-h*.55);c.stroke();
+for(let i=0;i<3;i++)E(mx+(i-1)*14,by-h*.62-(i%2)*10,5,5,i%2?'#f4b6c8':'#d6c8f0');E(mx,by-h*.8,8,8,'#f4b6c8');E(mx,by-h*.8,3,3,'#e8c27a')}});
+c.restore();c.strokeStyle='#e8c27a';c.lineWidth=4;c.beginPath();c.moveTo(cx-w/2,by);c.lineTo(cx-w/2,by-h+w/2);c.arc(cx,by-h+w/2,w/2,Math.PI,0);c.lineTo(cx+w/2,by);c.stroke()}
+/* ---------- state ---------- */
+let scene='title',t=0,tt0=0,opening=0,keys={},P={x:130,y:420,mv:0,dir:1,up:0,tx:null,ty:null,sc:0},sp=[],anim=null,near=null,flies=[0,1,2].map(i=>({i})),fs=0;
+const rnd=(()=>{let s=7;return()=>(s=s*16807%2147483647)/2147483647})(),FL=Array.from({length:70},()=>({x:rnd()*W,y:100+rnd()*370,c:['#f6b6c9','#fff','#cdbcf0'][rnd()*3|0],r:3+rnd()*4,p:rnd()*6}));
+const PT=Array.from({length:12},()=>({x:rnd()*W,y:rnd()*H,v:15+rnd()*15,p:rnd()*6})),SOL=[[470,290,170,100],[75,335,110,34],[50,100,30,24],[725,200,30,24],[600,70,30,24],[225,300,50,30]],
+PATH=[[130,460],[200,420],[300,400],[380,330],[430,230],[420,150],[400,100]];
+const OB=[{id:'flower',x:250,y:315,l:'Special flower',v:()=>1,a:puzzle},{id:'pond',x:555,y:345,l:'Fountain',v:()=>1,a:()=>{const f=!S.ex.pond;S.ex.pond=1;sfx('spark');burst(555,330,'#bfe0ff',8);toast('The water sings softly ♡');save();hud();if(f)check()}},
+{id:'orn',x:700,y:405,l:'Sparkle stone',v:()=>1,a:()=>{const f=!S.ex.orn;S.ex.orn=1;sfx('spark');burst(700,395,'#ffe8a8',8);toast('The little stone twinkles, as if it knows a secret ✦');save();hud();if(f)check()}},
+{id:'heart',x:695,y:145,l:'Glowing spot',v:()=>S.puz&&!S.heart,a:()=>{anim={k:'heart',t:0,x:695,y:145};sfx('heart')}},
+{id:'star',x:115,y:165,l:'Glowing spot',v:()=>S.heart&&!S.star,a:()=>{anim={k:'star',t:0,x:115,y:165};sfx('star')}},
+{id:'door',x:400,y:120,l:'Door',v:()=>1,a:()=>{S.done.includes('garden')?doorCard():toast('The door is sleeping. Complete the garden first ♡')}}];
+function burst(x,y,col,n=10){for(let i=0;i<n;i++)sp.push({x,y,vx:R(-40,40),vy:R(-60,-10),l:1,col})}
+function blocked(x,y){if(x<20||x>780||y<(scene==='home'?150:scene==='forest'?112:scene==='hill'?214:100)||y>465)return 1;return (scene==='hill'?SOLHL:scene==='forest'?SOLF:scene==='home'?SOLH:SOL).some(r=>x>r[0]-8&&x<r[0]+r[2]+8&&y>r[1]&&y<r[1]+r[3]+4)}
+/* ---------- puzzle ---------- */
+function puzzle(){S.ex.flower=1;save();hud();const C={2:'#f4a0bb',3:'#b9a2ee',4:'#ffd07a'},pl={};let sel=null;
+const pet=(i,fill,ex='')=>`<ellipse cx=100 cy=50 rx=17 ry=34 transform="rotate(${i*72} 100 100)" fill="${fill}" ${ex}/>`;
+function draw(){const done=S.puz||[2,3,4].every(i=>pl[i]);$('#pz').innerHTML=`<svg viewBox="0 0 200 200" width=200 class="${done?'bloom':''}">${pet(0,'#fbd5e0')}${pet(1,'#e6dcf8')}${[2,3,4].map(i=>(pl[i]||S.puz)?pet(i,C[i]):pet(i,C[i]+'33',`stroke="${C[i]}" stroke-dasharray="4 3" stroke-width=2 data-s=${i} style=cursor:pointer`)).join('')}<circle cx=100 cy=100 r=16 fill="#e8c27a"/></svg>`;
+$('#tl').innerHTML=done?'':[4,2,3].filter(i=>!pl[i]).map(i=>`<button class="tile ${sel===i?'sel':''}" data-p=${i}><svg viewBox="0 0 60 60"><ellipse cx=30 cy=30 rx=14 ry=26 fill="${C[i]}"/></svg></button>`).join('');
+$('#ms').textContent=done?'Beautiful! You’ve brought the flower back to life.':'Tap a petal, then tap the matching glowing outline.';
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{sel=+b.dataset.p;sfx('pick');draw()});
+document.querySelectorAll('[data-s]').forEach(e=>e.onclick=()=>{const i=+e.dataset.s;if(sel==null){$('#ms').textContent='Pick a petal first ♡';return}
+if(sel===i){pl[i]=1;sel=null;sfx('place');draw();if([2,3,4].every(k=>pl[k]))win()}else{sfx('oops');$('#ms').textContent='Almost! Try another spot ♡'}});}
+function win(){if(S.puz)return;S.puz=1;save();hud();sfx('bloom');$('#pz').insertAdjacentHTML('beforeend','<i class=sp style=left:12%>✦</i><i class=sp style="left:50%;animation-delay:.3s">✿</i><i class=sp style="left:86%;animation-delay:.6s">✦</i>');setTimeout(()=>{closeM();toast('Two hidden treasures have been revealed in the garden ✦',4500);burst(250,300,'#f6b6c9',24)},2400)}
+modal('<h2>The Missing Petals</h2><div id=pz></div><p id=ms></p><div id=tl class=bt></div>',[['Close',closeM]]);draw();if(S.puz)$('#ms').textContent='Beautiful! You’ve brought the flower back to life.'}
+function heartCard(){modal(`<h2>♡</h2><p class=l style="animation-delay:.3s">Every great adventure begins somewhere.</p><p class=l style="animation-delay:1.8s">But this one begins with someone who has given so much love, strength, and warmth to the people around her.</p><p class=l style="animation-delay:3.4s">Welcome, Amma. This little universe was made just for you.</p>`,
+[...(S.heart?[]:[['Keep this treasure ♡',()=>{S.heart=1;save();hud();closeM();toast('The heart is safe in your collection. Something golden glimmers nearby ✦',4500)}]]),['Close',closeM]])}
+function starCard(){modal(`<h2>✦ GUARDIAN OF THE BLOOMING GARDEN ✦</h2><div style="font-size:54px;color:#e8b64a">★</div><p>You solved the puzzle, discovered the hidden treasures, and brought magic back to the garden.</p>`,
+[...(S.star?[]:[['Claim my star ✦',()=>{S.star=1;save();hud();sfx('ach');closeM();check()}]]),['Close',closeM]])}
+function check(){if(S.done.includes('garden'))return;if(S.puz&&S.heart&&S.star&&S.ex.flower&&S.ex.pond&&S.ex.orn){S.done.push('garden');if(!S.unl.includes('home'))S.unl.push('home');save();hud();toast('Garden completed!',2500);setTimeout(()=>{sfx('unlock');doorCard()},2600)}}
+function doorCard(){modal(`<svg viewBox="0 0 100 120" width=110><path d="M10 120V45a40 40 0 0 1 80 0v75z" fill="#c99a74" stroke="#e8c27a" stroke-width=3 /><path d="M50 5v115" stroke="#e8c27a"/><circle cx=40 cy=70 r=3 fill="#f4b6c8"/><circle cx=60 cy=70 r=3 fill="#f4b6c8"/></svg><h2>Your next adventure awaits.</h2><p>The Cozy Little Home is now unlocked. There are more little wonders waiting to be discovered.</p>`,[['Continue the adventure →',()=>{closeM();fade(()=>{S.loc='home';S.unl.includes('home')||S.unl.push('home');save();hud();enterHome()})}],['Stay in the garden',closeM]])}
+function preview(){modal('<h2>The Cozy Little Home</h2><p>The door opens onto the next chapter of your adventure. It continues from the garden, with your treasures kept safe.</p><p><i>This part of the universe is still being made. Come back soon ♡</i></p>',[['Back to the garden',()=>{closeM();fade(()=>{S.loc='garden';save();hud();scene='garden';setLoc('garden')})}]],false)}
+/* ---------- flow ---------- */
+function begin(){if(opening||scene!=='title')return;aInit();opening=1;tt0=t;sfx('door');document.querySelectorAll('#ti>*').forEach(e=>e.classList.remove('on'))}
+function enterGarden(){scene='garden';$('#ti').hidden=true;['#hud','#obj'].forEach(s=>$(s).hidden=false);$('#tools').hidden=false;hud();if(S.loc==='home'||S.loc==='forest'||S.loc==='hill'){S.loc==='forest'?enterForest():S.loc==='hill'?(scene='preview',hillPrev()):enterHome();return}
+if(!S.wel)modal('<h2>Welcome to the Blooming Garden.</h2><p>Every little adventure begins with a little discovery. Explore the garden and see what magic is waiting for you.</p><p style="font-size:13px;opacity:.7">Move with arrow keys or WASD, or tap where you want to go. Press E to interact.</p>',[['Let’s explore ♡',()=>{S.wel=1;save();closeM()}]]);S.intro=1;save()}
+function act(){if(modalOpen||anim||!near)return;near.a()}
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(scene==='title'&&(k==='enter'||k===' ')){begin();return}
+if(modalOpen){if(k==='escape'&&closable)closeM();return}keys[k]=1;P.tx=null;if(k==='e'||k==='enter'||k===' ')act();if(k.startsWith('arrow')||k===' ')e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+$('#pr').onclick=act;
+addEventListener('pointerdown',()=>{if(scene==='title')begin()});
+$('#bgoal').onclick=()=>modal('<h2>Garden goals</h2><p style="text-align:left;font-size:14px">'+$('#obj').innerHTML.split('<button')[0]+'</p>',[['Close',closeM]]);
+$('#mnu').onclick=()=>modal('<h2>Menu</h2><p>Your adventure is saved automatically.</p>',[['Restart Game',askRestart],['Resume',closeM]]);
+function askRestart(){modal('<h2>Start a new adventure?</h2><p>Your current adventure progress will be reset, and you’ll return to the beginning of The Little Universe of Amma.</p>',[['Start Over',resetGame],['Keep Playing',closeM]])}
+function resetGame(){closeM();try{localStorage.removeItem(K)}catch(e){}
+fade(()=>{S={intro:0,loc:'garden',done:[],unl:['garden'],puz:0,heart:0,star:0,ex:{flower:0,pond:0,orn:0},wel:0,home:newHome(),forest:newForest(),hill:newHill(),vol:S.vol,mute:S.mute};Object.assign(P,{x:130,y:420,mv:0,dir:1,up:0,tx:null,ty:null});anim=null;sp=[];keys={};near=null;opening=0;scene='title';t=0;tt0=0;
+$('#ti').hidden=false;document.querySelectorAll('#ti>*').forEach(e=>e.classList.remove('on'));$('#tools').hidden=true;$('#pr').hidden=true;hud();setLoc('garden')})}
+cv.addEventListener('pointerdown',e=>{if(scene==='title'){begin();return}if((scene!=='garden'&&scene!=='home'&&scene!=='forest'&&scene!=='hill')||modalOpen||anim)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
+if(scene==='hill'&&hillTap(x,y))return;const o=(scene==='hill'?HOBH:scene==='forest'?HOBF:scene==='home'?HOB:OB).find(o=>o.v()&&Math.hypot(o.x-x,o.y-y)<40);if(o&&near===o){act();return}P.tx=x;P.ty=y});
+function resize(){const s=Math.min(innerWidth/W,(innerHeight-52)/H),e=$('#stage');e.style.left=(innerWidth-W*s)/2+'px';e.style.top=52+(innerHeight-52-H*s)/2+'px';e.style.width=W*s+'px';e.style.height=H*s+'px';e.style.fontSize=Math.max(10,s*15)+'px'}addEventListener('resize',resize);resize();
+/* ---------- render ---------- */
+function bg(){const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#dfe9ff');g.addColorStop(.25,'#e6f0d8');g.addColorStop(1,'#b9d4a8');c.fillStyle=g;c.fillRect(0,0,W,H);
+for(let i=0;i<6;i++)E(100+i*140,160+(i%2)*120,120,60,'rgba(255,255,255,.12)');
+c.strokeStyle='#ead9cc';c.lineWidth=38;c.lineCap='round';c.lineJoin='round';c.beginPath();PATH.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.stroke();c.strokeStyle='#f8ece4';c.lineWidth=28;c.stroke();c.strokeStyle='#efdccf';c.lineWidth=12;c.setLineDash([9,15]);c.stroke();c.setLineDash([])}
+function flower(x,y,r,col,sw){for(let i=0;i<5;i++){const a=i*1.256+sw;E(x+Math.cos(a)*r,y+Math.sin(a)*r,r*.8,r*.8,col)}E(x,y,r*.6,r*.6,'#ffe28a')}
+function garden(dt){bg();FL.forEach(f=>flower(f.x,f.y+Math.sin(t+f.p)*1,f.r,f.c,Math.sin(t*1.5+f.p)*.1));
+c.fillStyle='#e8c27a22';
+E(555,340,95,48,'#c9b7a8');E(555,340,85,40,'#bfe0f5');E(555,340,40+Math.sin(t*2)*3,18,'rgba(255,255,255,.4)');E(555,325,10,16,'#e8dcd4');c.strokeStyle='rgba(255,255,255,.7)';c.beginPath();c.arc(555,305,10,3.4,6);c.stroke();
+c.fillStyle='#b98a6a';c.fillRect(80,335,100,16);c.fillRect(85,351,8,18);c.fillRect(165,351,8,18);c.fillRect(80,320,100,8);
+[[65,100],[740,200],[615,70]].forEach(([x,y],i)=>{E(x,y+30,40,9,'rgba(60,80,60,.2)');c.fillStyle='#9c7a64';c.fillRect(x-8,y,16,30);const sw=Math.sin(t+i)*3;E(x+sw,y-20,42,36,'#a9c4a3');E(x+sw-14,y-8,28,24,'#bcd5b4');E(x+sw+14,y-30,24,20,'#f4c8d6')});
+E(250,315,24,10,'rgba(0,0,0,.08)');flower(250,305,12,S.puz?'#f6a9c0':'#fbd5e0',Math.sin(t)*.05);if(!S.puz){c.fillStyle='#fff';E(250+20,300,5,5,'#fff0')}
+E(700,405,14,10,'#c9c0d8');E(700,400,10,6,'#ddd5ea');
+if(S.puz&&!S.heart){E(695,150,22,14,'#9fbf98');const a=.5+.4*Math.sin(t*3);E(695,145,14,14,`rgba(246,160,190,${a*.5})`);if(Math.random()<.1)burst(R(670,720),R(120,160),'#f4a0bb',1)}
+if(S.heart&&!S.star){const a=.5+.4*Math.sin(t*3);E(115,165,16,16,`rgba(255,220,130,${a*.6})`);if(Math.random()<.1)burst(R(95,135),R(145,185),'#ffd98a',1)}
+const dn=S.done.includes('garden');door(400,115,70,95,dn?.15:0,dn,dn?20:6);
+PT.forEach(p=>{p.y+=p.v*dt;p.x+=Math.sin(t+p.p)*12*dt;if(p.y>H){p.y=-5;p.x=rnd()*W}E(p.x,p.y,3,2,'#f8c4d4')});
+flies.forEach(f=>{const x=400+Math.cos(t*.5+f.i*2)*300,y=250+Math.sin(t*.7+f.i*3)*130,w=Math.abs(Math.sin(t*10))*5+2;E(x-w/2,y,w,5,['#f6a9c0','#d6c8f0','#ffe28a'][f.i]);E(x+w/2,y,w,5,['#f6a9c0','#d6c8f0','#ffe28a'][f.i])});
+movePlayer(dt);let px=P.x,py=P.y;
+girl(px,py,1.3,t,P.mv,P.dir,P.up);
+sp=sp.filter(s=>(s.l-=dt*.8)>0);sp.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;c.fillStyle=s.col;c.globalAlpha=Math.max(0,s.l);c.fillRect(s.x,s.y,3,3);c.globalAlpha=1});
+if(anim){anim.t+=dt;const a=anim,rise=Math.min(a.t/1.6,1);c.fillStyle='rgba(40,25,50,.35)';c.fillRect(0,0,W,H);const y=a.k==='heart'?a.y-rise*60:a.y-rise*(a.y+10);c.font='36px serif';c.textAlign='center';c.fillStyle=a.k==='heart'?'#f48bb0':'#f0c050';c.shadowColor=c.fillStyle;c.shadowBlur=20;c.fillText(a.k==='heart'?'♥':'★',a.x,y);c.shadowBlur=0;if(Math.random()<.4)burst(a.x,y,'#fff',1);
+if(a.t>1.8){const k=a.k;anim=null;k==='heart'?heartCard():starCard()}}
+fx();if(Math.random()<.002&&!modalOpen)sfx('fly');
+near=null;if(!modalOpen&&!anim){const o=OB.filter(o=>o.v()).sort((a,b)=>Math.hypot(a.x-px,a.y-py)-Math.hypot(b.x-px,b.y-py))[0];if(o&&Math.hypot(o.x-px,o.y-py)<65)near=o}
+const pr=$('#pr');pr.hidden=!near;if(near)pr.textContent='✦ '+near.l+' (E / tap)'}
+function fx(){OB.forEach(o=>{if(!o.v()||o.id=='door')return;if((o.id=='flower'&&S.puz)||(o.id=='pond'&&S.ex.pond)||(o.id=='orn'&&S.ex.orn))return;c.strokeStyle='rgba(255,226,150,'+(.35+.3*Math.sin(t*3))+')';c.lineWidth=2;c.beginPath();c.arc(o.x,o.y-8,22+Math.sin(t*3)*2,0,7);c.stroke()});
+for(let i=0;i<3;i++){const x=120+i*250,g=c.createLinearGradient(x,0,x-80,320);g.addColorStop(0,'rgba(255,240,190,.17)');g.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=g;c.beginPath();c.moveTo(x,0);c.lineTo(x+60,0);c.lineTo(x-20,320);c.lineTo(x-100,320);c.fill()}
+[0,W].forEach((x,i)=>{for(let k=0;k<5;k++){c.save();c.translate(x,H+8);c.rotate(-1+k*.5+Math.sin(t*1.2+k+i)*.04);E(0,-22,9,24,k%2?'#8fb28a':'#a9c4a3');c.restore()}});
+const v=c.createRadialGradient(400,240,200,400,240,520);v.addColorStop(0,'rgba(60,40,70,0)');v.addColorStop(1,'rgba(60,40,70,.22)');c.fillStyle=v;c.fillRect(0,0,W,H)}
+function movePlayer(dt){let dx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0),dy=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);
+if(!dx&&!dy&&P.tx!=null){const ex=P.tx-P.x,ey=P.ty-P.y,d=Math.hypot(ex,ey);if(d<6)P.tx=null;else{dx=ex/d;dy=ey/d}}
+P.mv=0;if((dx||dy)&&!modalOpen&&!anim){const l=Math.hypot(dx,dy)||1,sx=dx/l*130*dt,sy=dy/l*130*dt;if(!blocked(P.x+sx,P.y))P.x+=sx;if(!blocked(P.x,P.y+sy))P.y+=sy;P.mv=1;if(Math.abs(dx)>.3)P.dir=dx;P.up=dy<-.4&&Math.abs(dx)<.4?1:0;if(P.tx!=null&&Math.hypot(P.tx-P.x,P.ty-P.y)<6)P.tx=null;
+if((fs+=dt)>.3){fs=0;sfx('step')}}}
+const SKY=Array.from({length:70},()=>({x:rnd(),y:rnd()*.7,r:.6+rnd()*1.2,p:rnd()*6})),SIL=Array.from({length:18},()=>({x:rnd(),h:.04+rnd()*.06}));
+function fitOpen(){const r=$('#sc').getBoundingClientRect(),k=Math.min(r.width/520,r.height/560),o=$('#oc');if(k>0){o.style.width=520*k+'px';o.style.height=560*k+'px'}}
+function skyDraw(tm,op){const k=$('#sk'),w=innerWidth,h=innerHeight;if(k.width!==w||k.height!==h){k.width=w;k.height=h}const g=k.getContext('2d'),a=Math.min(tm/2,1)*(1-op*.6);
+const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0b0f2a');gr.addColorStop(.62,'#23204a');gr.addColorStop(1,'#46324f');g.globalAlpha=1;g.fillStyle=gr;g.fillRect(0,0,w,h);
+SKY.forEach(s=>{g.globalAlpha=a*(.35+.35*Math.sin(t*1.4+s.p));g.fillStyle='#f1e3c6';g.beginPath();g.arc(s.x*w,s.y*h,s.r,0,7);g.fill()});
+g.globalAlpha=a;g.fillStyle='#141737';g.strokeStyle='#141737';g.lineWidth=2;for(let i=0;i<5;i++){g.beginPath();g.ellipse((i+.5)*w/5+(i%2?20:-20),h*.92,w*.07,h*.08,0,0,7);g.fill()}
+SIL.forEach(s=>{const x=s.x*w,y=h*(1-s.h);g.beginPath();g.moveTo(x,h);g.lineTo(x+Math.sin(t+s.x*9)*2,y);g.stroke();g.beginPath();g.ellipse(x,y,6,5,0,0,7);g.fill()});
+g.fillStyle='#d9b878';for(let i=0;i<18;i++){g.globalAlpha=a*.5;g.fillRect((i*131+t*(6+i%4*3))%w,(i*79+h-(t*(5+i%3*3))%h)%h,2,2)}g.globalAlpha=1}
+function bl(x,y,r,col='#f3e4d0'){for(let i=0;i<5;i++){const a=i*1.2566;E(x+Math.cos(a)*r*.8,y+Math.sin(a)*r*.8,r*.55,r*.55,col)}E(x,y,r*.38,r*.38,'#c9a24f')}
+function dArt(cx,by,w,h,o){const a=w/2,top=by-h,ar=p=>{c.beginPath();c.moveTo(cx-a-p,by);c.lineTo(cx-a-p,top+a);c.arc(cx,top+a,a+p,Math.PI,0);c.lineTo(cx+a+p,by);c.closePath()};
+ar(14);c.fillStyle='#5a3d3f';c.fill();c.strokeStyle='#b99556';c.lineWidth=2;c.stroke();c.save();ar(0);c.clip();
+const bg2=c.createLinearGradient(0,top,0,by);if(o>0){bg2.addColorStop(0,'#8fa5cf');bg2.addColorStop(.6,'#e3c6cf');bg2.addColorStop(1,'#a9c4a3')}else{bg2.addColorStop(0,'#2c1f2e');bg2.addColorStop(1,'#2c1f2e')}c.fillStyle=bg2;c.fillRect(cx-a,top,w,h);
+[-1,1].forEach(s=>{c.save();c.translate(cx+s*a,0);c.scale(-s*(1-o),1);
+const pg=c.createLinearGradient(0,0,a,0);pg.addColorStop(0,'#d3b497');pg.addColorStop(1,'#e8d6bf');c.fillStyle=pg;c.fillRect(0,top,a,h);
+c.strokeStyle='#b99556';c.lineWidth=1;for(let i=1;i<4;i++){c.beginPath();c.arc(a,top+a,a-i*26,Math.PI,1.5*Math.PI);c.stroke()}
+[[by-h*.5,by-14],[by-h*.7,by-h*.55]].forEach(([y0,y1],i)=>{c.fillStyle='#c99aa4';c.fillRect(10,y0,a-20,y1-y0);c.strokeStyle='#b99556';c.lineWidth=1.5;c.strokeRect(10,y0,a-20,y1-y0);bl(a/2,(y0+y1)/2,i?9:12)});
+c.strokeStyle='#7f9b7c';c.lineWidth=2;c.beginPath();c.moveTo(a*.5,by-18);c.bezierCurveTo(a*.15,by-h*.14,a*.85,by-h*.2,a*.5,by-h*.3);c.stroke();E(a*.3,by-h*.12,6,3,'#8eab88');E(a*.72,by-h*.2,6,3,'#8eab88');
+c.strokeStyle='#b99556';c.lineWidth=3;c.beginPath();c.arc(a-14,by-h*.38,6,0,7);c.stroke();E(a-14,by-h*.38,2.5,2.5,'#b99556');
+c.strokeStyle='rgba(50,30,35,.35)';c.lineWidth=3;c.beginPath();c.moveTo(a,top);c.lineTo(a,by);c.stroke();c.restore()});c.restore();
+c.shadowColor='rgba(230,170,120,.35)';c.shadowBlur=10;c.strokeStyle='#b99556';c.lineWidth=2.5;ar(0);c.stroke();c.shadowBlur=0;
+c.strokeStyle='#7f9b7c';c.lineWidth=2.5;[-1,1].forEach(s=>{const x0=cx+s*(a+14);c.beginPath();for(let y=by;y>top+a;y-=6){const x=x0+s*(8+Math.sin(y*.06)*5);y==by?c.moveTo(x,y):c.lineTo(x,y)}c.stroke();for(let y=by-30;y>top+a;y-=48){const x=x0+s*(8+Math.sin(y*.06)*5);E(x+s*6,y,7,3.5,'#8eab88');bl(x,y-12,6,'#e0a9b8')}});
+for(let k=0;k<=8;k++){const g=Math.PI+k*Math.PI/8,x=cx+Math.cos(g)*(a+18),y=top+a+Math.sin(g)*(a+18);k%2?E(x,y,6,3,'#8eab88'):bl(x,y,k==4?10:6,'#e0a9b8')}}
+function titleDraw(){fitOpen();const tm=S.intro?10:t,op=opening?Math.min((t-tt0)/2.6,1):0,g0=c;skyDraw(tm,op);
+try{c=$('#oc').getContext('2d');c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,520,560);c.save();const z=1+op*.8;c.translate(260,300);c.scale(z,z);c.translate(-260,-300);c.globalAlpha=Math.min(Math.max((tm-1.5)/2.5,0),1);
+const hl=c.createRadialGradient(260,290,40,260,290,250);hl.addColorStop(0,'rgba(214,150,130,.22)');hl.addColorStop(1,'rgba(214,150,130,0)');c.fillStyle=hl;c.fillRect(0,0,520,560);
+const gg=c.createLinearGradient(0,470,0,560);gg.addColorStop(0,'#1f2548');gg.addColorStop(1,'#12162f');c.fillStyle=gg;c.beginPath();c.ellipse(260,520,235,50,0,0,7);c.fill();E(260,492,140,20,'#3a3358');E(260,490,132,16,'#4b4268');
+c.strokeStyle='#4d6b57';c.lineWidth=1.5;for(let i=0;i<22;i++){const x=i*24+8,sw=Math.sin(t+i)*2;c.beginPath();c.moveTo(x,545);c.lineTo(x+sw,533);c.stroke()}
+dArt(260,470,250,360,op*.9);c.globalAlpha=Math.min(Math.max((tm-3.5)/1.5,0),1)*(1-op);c.shadowColor='rgba(20,10,30,.55)';c.shadowBlur=8;girl(260,525,1.9,t,0,1,0);c.shadowBlur=0;c.restore()}finally{c=g0}
+if(!opening){if(tm>5)$('#ti h1').classList.add('on');if(tm>6.5)$('#ti p').classList.add('on');if(tm>8.5)$('#ti em').classList.add('on')}
+if(op>=1&&!S.__e){S.__e=1;fade(()=>{delete S.__e;enterGarden();setLoc('garden')})}}
+function titleDrawOld(){const op=opening?Math.min((t-tt0)/2.5,1):0,tm=S.intro?10:t;c.fillStyle='#150f1e';c.fillRect(0,0,W,H);const g=c.createRadialGradient(400,250,10,400,250,420);g.addColorStop(0,`rgba(120,80,130,${Math.min(tm/4,1)*.7})`);g.addColorStop(1,'#150f1e');c.fillStyle=g;c.fillRect(0,0,W,H);
+for(let i=0;i<40;i++){const a=Math.min(tm/3,1)*(.5+.5*Math.sin(t+i));c.fillStyle=`rgba(255,226,150,${a*.8})`;c.fillRect((i*97+t*6*(1+i%3))%W,(i*53+Math.sin(t*.5+i)*20+t*-3*(i%3)+H*2)%H,2,2)}
+c.save();const z=1+op*.9;c.translate(400,300);c.scale(z,z);c.translate(-400,-300+op*0);c.globalAlpha=Math.min(Math.max((tm-1.5)/2.5,0),1);door(400,370,250,320,op,0,25+Math.sin(t*2)*8);c.restore();
+if(op<1){c.globalAlpha=Math.min(Math.max((tm-3)/2,0),1)*(1-op);girl(400,415,2,t,0,1,0);c.globalAlpha=1}
+if(op>=1&&!S.__e){S.__e=1;fade(()=>{delete S.__e;enterGarden();setLoc('garden')})}
+const h=$('#ti h1'),p=$('#ti p'),em=$('#ti em');if(!opening){if(tm>5)h.classList.add('on');if(tm>8)p.classList.add('on');if(tm>10)em.classList.add('on')}}
+let last=0;function loop(ms){const dt=Math.min((ms-last)/1000||0,.05);last=ms;t+=dt;try{if(scene==='title')titleDraw();else if(scene==='garden')garden(dt);else if(scene==='home')homeDraw(dt);else if(scene==='forest')forestDraw(dt);else if(scene==='hill')hillDraw(dt);else if(scene==='preview'){c.fillStyle='#2a1c34';c.fillRect(0,0,W,H);const g=c.createRadialGradient(400,250,10,400,250,400);g.addColorStop(0,'#ffd9a8aa');g.addColorStop(1,'#2a1c34');c.fillStyle=g;c.fillRect(0,0,W,H);door(400,380,250,320,Math.min(.2,.05*t%.2),1,30);girl(400,425,2,t,0,1,0)}}catch(e){console.error(e)}requestAnimationFrame(loop)}
+$('#vol').value=S.vol;$('#snd').textContent=S.mute?'🔇':'♪';
+const rs=document.createElement('button');rs.textContent='New game';rs.style.cssText='font-size:11px;padding:4px 10px;min-height:0';rs.onclick=()=>{if(confirm('Start a new game? Progress will be erased.')){try{localStorage.removeItem(K)}catch(e){}location.reload()}};$('#obj').append(document.createElement('br'),rs);
+const oh=hud;hud=function(){oh();$('#obj').append(document.createElement('br'),rs)};
+
+/* ================= CHAPTER 2: THE COZY LITTLE HOME ================= */
+function newHome(){return{puz:0,heart:0,star:0,wel:0,ex:{shelf:0,win:0,box:0}}}
+S.home=S.home||newHome();
+/* >>> PHOTO FRAMES: edit ONLY this object. src = path to your image (e.g. 'assets/photos/amma-photo-01.jpg'), pos = crop focus ('50% 30%' = centre, a little above middle), cap = optional caption. Empty src = elegant placeholder. <<< */
+const PHOTOS={
+'memory-frame-01':{src:'assets/homeframe1.jpeg',pos:'50% 50%',cap:''},
+'memory-frame-02':{src:'assets/homeframe2.jpeg',pos:'40% 40%',cap:''},
+'memory-frame-03':{src:'assets/homeframe3.jpeg',pos:'50% 50%',cap:''},
+'memory-frame-04':{src:'assets/homeframe4.jpeg',pos:'50% 15%',cap:''},
+'memory-frame-05':{src:'assets/homeframe5.jpeg',pos:'50% 50%',cap:''},
+'memory-frame-06':{src:'assets/homeframe6.jpeg',pos:'50% 50%',cap:''}};
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,FR=[{id:'memory-frame-01',x:340,y:42,w:56,h:76,a:-.03},{id:'memory-frame-02',x:408,y:24,w:104,h:70,a:.015},{id:'memory-frame-03',x:524,y:40,w:46,h:46,a:.03},{id:'memory-frame-04',x:412,y:104,w:56,h:40,a:-.02},{id:'memory-frame-05',x:480,y:102,w:38,h:54,a:.02},{id:'memory-frame-06',x:530,y:98,w:34,h:46,a:0,o:1}];
+const SOLH=[[330,200,170,58],[370,312,90,40],[205,215,60,38],[45,235,40,35],[690,170,90,60],[230,150,90,22],[555,215,18,15]],PH={},HC=['#d9a1b0','#8ea98a','#c99a74'];let warm=0;
+function rr(x,y,w,h,r,col){c.fillStyle=col;c.beginPath();c.roundRect(x,y,w,h,r);c.fill()}
+function ph(id){const p=PHOTOS[id];if(!p||!p.src)return null;if(!(id in PH)){const im=new Image();PH[id]={im,ok:0};im.onload=()=>PH[id].ok=1;im.onerror=()=>PH[id].ok=0;im.src=p.src}return PH[id].ok?PH[id].im:null}
+function drawFrame(f,i){const w=f.w,h=f.h,a=RM?f.a:f.a+Math.sin(t*.35+i*1.7)*.012,fy=RM?0:Math.sin(t*.5+i*2.3);c.save();c.translate(f.x+w/2,f.y+h/2+fy);c.rotate(a);E(2,h/2+3,w/2,3,'rgba(60,35,30,.2)');
+c.fillStyle='#a77850';c.beginPath();f.o?c.ellipse(0,0,w/2,h/2,0,0,7):c.roundRect(-w/2,-h/2,w,h,3);c.fill();c.strokeStyle='#d2b06a';c.lineWidth=1;c.stroke();
+const m=Math.max(4,w*.1),ow=w-2*m,oh=h-2*m;c.save();c.beginPath();f.o?c.ellipse(0,0,ow/2,oh/2,0,0,7):c.rect(-ow/2,-oh/2,ow,oh);c.clip();c.fillStyle='#ead8c0';c.fillRect(-w,-h,2*w,2*h);
+const im=ph(f.id);if(im){const s=Math.max(ow/im.width,oh/im.height),dw=im.width*s,dh=im.height*s,q=(PHOTOS[f.id].pos||'50% 50%').split(' ').map(v=>parseFloat(v)/100);c.drawImage(im,-ow/2+(ow-dw)*q[0],-oh/2+(oh-dh)*(q[1]??.5),dw,dh)}
+else{c.strokeStyle='#cdb495';c.lineWidth=1;c.strokeRect(-ow/2+2,-oh/2+2,ow-4,oh-4);c.fillStyle='#d6b9a0';c.font=Math.min(14,ow*.4)+'px serif';c.textAlign='center';c.fillText('♡',0,4)}c.restore();c.restore()}
+function fdoor(x,y,w,h,op){c.save();if(op){c.shadowColor='rgba(140,200,150,.6)';c.shadowBlur=12}rr(x,y,w,h,12,'#6f6244');c.shadowBlur=0;rr(x+6,y+8,w-12,h-8,8,'#8b7d55');c.strokeStyle='#8ea98a';c.lineWidth=2;c.beginPath();c.moveTo(x+w/2,y+h);c.bezierCurveTo(x+8,y+h*.7,x+w-8,y+h*.5,x+w/2,y+18);c.stroke();for(let i=0;i<4;i++)E(x+w/2+(i%2?9:-9),y+30+i*20,7,3.5,'#9bb894');E(x+w-14,y+h*.55,3.5,3.5,'#c9a24f');if(!op){rr(x+w/2-6,y+h*.4,12,10,2,'#b99556');c.strokeStyle='#b99556';c.lineWidth=2;c.beginPath();c.arc(x+w/2,y+h*.4,5,Math.PI,0);c.stroke()}c.restore()}
+function homeDraw(dt){const dn=S.done.includes('home'),h=S.home;warm=Math.max(0,warm-dt);
+c.fillStyle='#efe0cb';c.fillRect(0,0,W,170);c.fillStyle='rgba(217,161,176,.13)';for(let x=0;x<W;x+=40)c.fillRect(x,0,18,150);rr(0,138,W,32,0,'#c9a07a');rr(0,166,W,6,0,'#a77850');
+c.fillStyle='#d2a679';c.fillRect(0,172,W,H);c.strokeStyle='rgba(120,80,50,.18)';c.lineWidth=1;for(let y=190;y<H;y+=22){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+E(415,335,170,72,'#e2b9ae');E(415,335,150,60,'#ecd0c0');E(415,335,95,36,'#e2b9ae');
+c.fillStyle='rgba(255,226,170,.16)';c.beginPath();c.moveTo(80,172);c.lineTo(190,172);c.lineTo(250,330);c.lineTo(120,330);c.fill();
+rr(66,24,128,108,6,'#a77850');const sg=c.createLinearGradient(0,30,0,128);sg.addColorStop(0,'#a9bfe0');sg.addColorStop(1,'#efc9c4');c.fillStyle=sg;c.fillRect(74,32,112,92);c.fillStyle='#9fb596';c.beginPath();c.ellipse(110,124,60,22,0,0,7);c.fill();c.fillStyle='#a77850';c.fillRect(128,32,4,92);
+const sw=RM?0:Math.sin(t*.8)*4;c.fillStyle='#cbbde0';c.beginPath();c.moveTo(60,22);c.lineTo(100,22);c.lineTo(88+sw,136);c.lineTo(58,136);c.fill();c.beginPath();c.moveTo(200,22);c.lineTo(160,22);c.lineTo(172-sw,136);c.lineTo(202,136);c.fill();
+rr(230,60,90,110,4,'#a77850');['#d9a1b0','#8ea98a','#c9a24f','#cbbde0','#c99a74'].forEach((q,i)=>{for(let r=0;r<3;r++)rr(238+i*15,70+r*34,11,28-(i+r)%3*4,2,['#d9a1b0','#8ea98a','#c9a24f','#cbbde0','#c99a74'][(i+r)%5]);});
+FR.forEach(drawFrame);fdoor(620,48,76,122,dn);
+rr(692,95,92,135,4,'#a77850');[135,175,215].forEach(y=>rr(698,y,80,5,2,'#8b6240'));[0,1,2].forEach(i=>{c.save();const x=706+i*24;if(h.puz){c.translate(x,[170,210,130][i]);c.scale(.5,.5);c.fillStyle=HC[i];i==0?(c.fillRect(14,0,12,14),E(20,30,18,20,HC[i])):i==1?c.fillRect(0,0,46,14):c.fillRect(2,0,38,28)}else{E(x+10,128+i*40,10,6,HC[i]);}c.restore()});
+rr(205,215,60,38,4,'#b98a64');rr(222,203,26,20,3,'#c99a74');rr(220,198,30,7,2,'#d9b48c');
+rr(330,185,170,28,12,'#c88e92');rr(330,200,170,58,14,'#d9a1a0');rr(345,208,50,34,10,'#f1e4d0');rr(435,208,50,34,10,'#cbbde0');
+rr(370,312,90,40,8,'#b98a64');rr(374,308,82,10,5,'#cfa77c');rr(560,170,6,55,2,'#8b6240');c.fillStyle='#f3d9a8';c.beginPath();c.moveTo(550,175);c.lineTo(576,175);c.lineTo(584,150);c.lineTo(542,150);c.fill();const lg=c.createRadialGradient(563,165,5,563,165,90);lg.addColorStop(0,'rgba(255,214,150,.22)');lg.addColorStop(1,'rgba(255,214,150,0)');c.fillStyle=lg;c.fillRect(470,80,190,180);
+rr(52,262,30,22,4,'#c9805e');[[-10,-14],[8,-18],[-2,-26]].forEach(([a,b])=>E(67+a,255+b,9,14,'#8ea98a'));
+if(h.puz&&!h.heart){rr(502,255,40,26,9,'#e7b6c0');E(522,262,18,12,'rgba(244,160,190,'+(.15+.15*Math.sin(t*3))+')');if(Math.random()<.08)burst(R(500,545),R(250,285),'#f4a0bb',1)}
+if(h.heart&&!h.star){E(205,150,14,14,'rgba(255,220,130,'+(.25+.2*Math.sin(t*3))+')');if(Math.random()<.08)burst(R(190,220),R(135,165),'#ffd98a',1)}
+if(dn&&Math.random()<.05)burst(R(625,695),R(60,170),'#9ed3a0',1);
+movePlayer(dt);girl(P.x,P.y,1.3,t,P.mv,P.dir,P.up);
+sp=sp.filter(s=>(s.l-=dt*.8)>0);sp.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;c.fillStyle=s.col;c.globalAlpha=Math.max(0,s.l);c.fillRect(s.x,s.y,3,3);c.globalAlpha=1});
+c.fillStyle='rgba(255,170,90,'+(.06+warm*.04)+')';c.fillRect(0,0,W,H);const v=c.createRadialGradient(400,240,220,400,240,520);v.addColorStop(0,'rgba(60,35,30,0)');v.addColorStop(1,'rgba(60,35,30,.25)');c.fillStyle=v;c.fillRect(0,0,W,H);
+if(anim){anim.t+=dt;const a=anim,r=Math.min(a.t/1.6,1);c.fillStyle='rgba(60,35,30,.25)';c.fillRect(0,0,W,H);const y=a.k=='hh'?a.y-r*60:a.y+(240-a.y)*r,x=a.k=='hh'?a.x:a.x+(400-a.x)*r;c.font='34px serif';c.textAlign='center';c.fillStyle=a.k=='hh'?'#e98aa6':'#e8b84a';c.fillText(a.k=='hh'?'♥':'★',x,y);if(a.t>1.8){const k=a.k;anim=null;k=='hh'?homeHeart():homeStar()}}
+near=null;if(!modalOpen&&!anim){const o=HOB.filter(o=>o.v()).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y))[0];if(o&&Math.hypot(o.x-P.x,o.y-P.y)<62)near=o}
+const pr=$('#pr');pr.hidden=!near;if(near)pr.textContent='✦ '+near.l+' (E / tap)'}
+function info(k,txt){const f=!S.home.ex[k];S.home.ex[k]=1;save();hud();sfx('pop');modal('<p>'+txt+'</p>',[['Close',closeM]]);if(f)homeCheck()}
+const HOB=[...FR.map(f=>({id:f.id,x:f.x+f.w/2,y:158,l:'Photo frame',v:()=>1,a:()=>frameCard(f)})),
+{id:'shelf',x:275,y:172,l:'Bookshelf',v:()=>1,a:()=>info('shelf','Some stories are read from pages. Others are collected, one little moment at a time.')},
+{id:'win',x:130,y:172,l:'Window',v:()=>1,a:()=>info('win','Even the quietest corners can hold the warmest feelings.')},
+{id:'box',x:236,y:268,l:'Keepsake box',v:()=>1,a:()=>info('box','Every home has little treasures. Some are kept in boxes, and some are kept in the heart.')},
+{id:'kp',x:735,y:252,l:'Keepsake shelf',v:()=>1,a:homePuzzle},
+{id:'hh',x:520,y:276,l:'Loose cushion',v:()=>S.home.puz&&!S.home.heart,a:()=>{anim={k:'hh',t:0,x:520,y:262};sfx('heart')}},
+{id:'hs',x:205,y:172,l:'Little glimmer',v:()=>S.home.heart&&!S.home.star,a:()=>{anim={k:'hs',t:0,x:205,y:150};sfx('star')}},
+{id:'fd',x:657,y:184,l:'Leafy door',v:()=>1,a:()=>S.done.includes('home')?forestCard():toast('The little door is still asleep. Finish exploring the home first ♡')}];
+function frameCard(f){const p=PHOTOS[f.id]||{};modal("<h2>A little memory</h2><div id='pv' style='margin:0 auto;width:"+(f.w>=f.h?240:160)+"px;aspect-ratio:"+f.w+"/"+f.h+";max-height:44vh;border:6px solid #a77850;border-radius:4px;overflow:hidden;background:#ead8c0;display:flex;align-items:center;justify-content:center;color:#d6b9a0;font-size:28px'>♡</div><p id='pc' style='font-size:14px'></p>",[['Close',closeM]]);
+const cap=$('#pc');cap.textContent=p.cap||'';if(p.src){const im=new Image();im.onload=()=>{const v=$('#pv');if(!v)return;v.textContent='';im.style.cssText =
+  'width:100%;height:100%;object-fit:cover;object-position:' +
+  (p.pos || '50% 50%') + ';display:block;';v.append(im)};im.onerror=()=>{cap.textContent=p.cap||'This frame is waiting for a memory ♡'};im.src=p.src}else cap.textContent=p.cap||'This frame is waiting for a memory ♡'}
+function homePuzzle(){const pl={},X=[30,95,160];let sel=null;
+const sh=(i,x,f,e='')=>["<g fill='"+f+"' "+e+"><rect x='"+(x+14)+"' y='50' width='12' height='14' rx='3'/><ellipse cx='"+(x+20)+"' cy='80' rx='18' ry='20'/></g>","<g fill='"+f+"' "+e+"><rect x='"+x+"' y='86' width='46' height='14' rx='3'/></g>","<g fill='"+f+"' "+e+"><rect x='"+(x+2)+"' y='72' width='38' height='28' rx='4'/><rect x='"+x+"' y='66' width='42' height='9' rx='3'/></g>"][i];
+function draw(){const done=S.home.puz||[0,1,2].every(i=>pl[i]);$('#hz').innerHTML="<svg viewBox='0 0 240 110' width='250' class='"+(done?'bloom':'')+"'><rect x='8' y='100' width='224' height='7' rx='3' fill='#a77850'/>"+[0,1,2].map(i=>(pl[i]||S.home.puz)?sh(i,X[i],HC[i]):sh(i,X[i],HC[i],"fill-opacity='.15' stroke='"+HC[i]+"' stroke-dasharray='4 3' stroke-width='2' data-s='"+i+"' style='cursor:pointer'")).join('')+'</svg>';
+$('#ht').innerHTML=done?'':[2,0,1].filter(i=>!pl[i]).map(i=>"<button class='tile "+(sel===i?'sel':'')+"' data-p='"+i+"'><svg viewBox='-2 46 50 56'>"+sh(i,0,HC[i])+'</svg></button>').join('');
+$('#hm').innerHTML=done?'Perfect! Every little treasure has found its place.<br><i>And sometimes, the most precious treasures are the memories we keep.</i>':'Tap a keepsake, then tap its matching outline.';
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{sel=+b.dataset.p;sfx('pick');draw()});
+document.querySelectorAll('[data-s]').forEach(e=>e.onclick=()=>{const i=+e.dataset.s;if(sel==null){$('#hm').textContent='Pick a keepsake first ♡';return}if(sel===i){pl[i]=1;sel=null;sfx('place');draw();if([0,1,2].every(k=>pl[k]))win()}else{sfx('oops');sel=null;$('#hm').textContent='Almost! It wants a different spot ♡';draw2()}})}
+function draw2(){setTimeout(()=>{const m=$('#hm');if(m&&!S.home.puz)m.textContent='Tap a keepsake, then tap its matching outline.'},1500)}
+function win(){if(S.home.puz)return;S.home.puz=1;save();hud();sfx('bloom');warm=3;$('#hz').insertAdjacentHTML('beforeend',"<i class='sp' style='left:12%'>✦</i><i class='sp' style='left:50%;animation-delay:.3s'>✿</i><i class='sp' style='left:86%;animation-delay:.6s'>✦</i>");setTimeout(()=>{closeM();toast('Something is glimmering in the room ✦',4000)},3200)}
+modal("<h2>The Memory Corner</h2><div id='hz' style='position:relative'></div><p id='hm'></p><div id='ht' class='bt'></div>",[['Close',closeM]]);draw()}
+function homeHeart(){modal('<h2>♡</h2><p class=l style="animation-delay:.3s">Amma, some of the sweetest things in life are the little surprises we share with the people we love.</p><p class=l style="animation-delay:2s">This one comes with all our love, a little sweetness, and a big thank-you for everything you do.</p><p class=l style="animation-delay:3.8s">There’s a real chocolate surprise waiting for you, from your little girl and Dad. ♡</p>',[...(S.home.heart?[]:[['I’ll find my surprise ♡',()=>{S.home.heart=1;save();hud();closeM();toast('The heart is safe. Another glimmer appears near the window ✦',4000)}]]),['Close',closeM]])}
+function homeStar(){modal('<h2>✦ KEEPER OF OUR LITTLE MEMORIES ✦</h2><div style="font-size:54px;color:#e8b64a">★</div><p>You explored the home, restored its little treasures, and discovered the love tucked into its quietest corners.</p>',[...(S.home.star?[]:[['Claim my star ✦',()=>{S.home.star=1;save();hud();sfx('ach');closeM();homeCheck()}]]),['Close',closeM]])}
+function homeCheck(){const h=S.home;if(S.done.includes('home')||!(h.puz&&h.heart&&h.star&&h.ex.shelf&&h.ex.win&&h.ex.box))return;S.done.push('home');if(!S.unl.includes('forest'))S.unl.push('forest');save();hud();toast('Home completed!',2500);setTimeout(()=>{sfx('unlock');forestCard()},2800)}
+function forestCard(){modal('<h2>A New Adventure Awaits</h2><p>The Whispering Forest is now unlocked. Beyond that little door, glowing lights and forgotten memories are waiting to be found.</p>',[['Continue the adventure →',()=>{closeM();fade(()=>{S.loc='forest';save();scene='preview';$('#pr').hidden=true;hud();forestPrev()})}],['Stay in the home',closeM]])}
+function forestPrev(){modal('<h2>The Whispering Forest</h2><p>A little door waits at the edge of the trees. This chapter will continue from the home, with all your treasures kept safe.</p><p><i>This part of the universe is still being made ♡</i></p>',[['Back to the home',()=>{closeM();fade(enterHome)}]],false)}
+function enterHome(){S.loc='home';S.unl.includes('home')||S.unl.push('home');save();Object.assign(P,{x:400,y:430,tx:null,ty:null});scene='home';anim=null;$('#pr').hidden=true;setLoc('home');hud();if(!S.home.wel)modal('<h2>Welcome to The Cozy Little Home</h2><p>Some places are made of walls and windows. Others are made of little moments, familiar faces, and the love that makes a house feel like home. Take your time. There are memories waiting to be discovered here.</p>',[['Let’s look around ♡',()=>{S.home.wel=1;save();closeM()}]])}
+function go(l){closeM();fade(()=>{if(l==='home')enterHome();else{S.loc='garden';save();Object.assign(P,{x:130,y:420,tx:null,ty:null});scene='garden';$('#pr').hidden=true;setLoc('garden');hud()}})}
+$('#mnu').onclick=()=>modal('<h2>Menu</h2><p>Your adventure is saved automatically.</p>',[...(S.loc!=='garden'&&S.unl.includes('garden')?[['Go to the garden',()=>go('garden')]]:[]),...(S.unl.includes('home')&&S.loc!=='home'?[['Go to the cozy home',()=>go('home')]]:[]),['Restart Game',askRestart],['Resume',closeM]]);
+$('#inv').onclick=()=>modal('<h2>Your collection</h2>'+(S.heart?'<p>♡ Garden heart</p>':'')+(S.star?'<p>✦ Guardian of the Blooming Garden</p>':'')+(S.home.heart?'<p>♡ Home heart</p>':'')+(S.home.star?'<p>✦ Keeper of Our Little Memories</p>':'')+(!S.heart&&!S.star?'<p>Nothing yet. Keep exploring!</p>':''),[...(S.heart?[['Garden heart ♡',heartCard]]:[]),...(S.home.heart?[['Home heart ♡',homeHeart]]:[]),['Close',closeM]]);
+const hud0=hud;hud=function(){hud0();if(S.loc==='home'){const h=S.home;$('#obj').innerHTML='<b>Cozy Little Home</b> '+(S.done.includes('home')?'Completed ✓':'In progress')+'<br>Look around: bookshelf '+(h.ex.shelf?'✓':'○')+' window '+(h.ex.win?'✓':'○')+' keepsake box '+(h.ex.box?'✓':'○')+'<br>Memory corner: '+(h.puz?'Restored':'Not restored')+'<br>Heart: '+(h.heart?'Collected':h.puz?'Revealed':'Hidden')+'<br>Star: '+(h.star?'Collected':h.heart?'Revealed':'Hidden')}};hud();
+
+/* ================= CHAPTER 3: THE WHISPERING FOREST ================= */
+function newForest(){return{puz:0,heart:0,star:0,wel:0,mem:[]}}
+S.forest=S.forest||newForest();
+/* >>> MEMORY FIREFLIES: edit ONLY this list. Per memory: src = photo path (put photos in assets/photos/forest-memories/, e.g. 'assets/photos/forest-memories/forest-memory-01.jpg'), pos = crop focus ('50% 30%'), title = optional heading, cap = your caption (use '' for none). Leave src '' for the placeholder. Keep id/x/y as they are. <<< */
+
+const MEMORIES=[
+{id:'memory-firefly-01',x:120,y:335,title:'',src:'assets/forest1.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-02',x:230,y:240,title:'',src:'assets/forest2.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-03',x:170,y:170,title:'',src:'assets/forest3.jpeg',pos:'50% 35%',cap:'A little memory, held close.'},
+{id:'memory-firefly-04',x:300,y:125,title:'',src:'assets/forest4.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-05',x:435,y:150,title:'',src:'assets/forest5.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-06',x:465,y:300,title:'',src:'assets/forest6.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-07',x:610,y:275,title:'',src:'assets/forest7.jpeg',pos:'50% 50%',cap:'A little memory, held close.'},
+{id:'memory-firefly-08',x:640,y:205,title:'',src:'assets/forest8.jpeg',pos:'50% 50%',cap:'A little memory, held close.'}];
+
+const SOLF=[[335,165,50,50],[60,150,30,30],[200,120,30,30],[560,150,30,30],[680,240,30,30],[120,300,30,30],[490,335,150,75],[225,296,40,28]],TRF=[[75,180],[215,150],[575,180],[695,270],[135,330]],PATHF=[[70,430],[170,390],[260,330],[300,285],[380,255],[470,240],[560,220],[620,160],[690,125]],DEC=Array.from({length:10},(_,i)=>({x:60+i*72,y:140+(i*97)%300,p:i*1.7}));let ftm=0,shim=0;
+function ff(x,y,a,r){E(x,y,r*3,r*3,'rgba(190,235,205,'+a*.16+')');E(x,y,r*1.6,r*1.6,'rgba(210,240,200,'+a*.3+')');E(x,y,r*.6,r*.6,'#f6f0c8');E(x-2,y-2,2,1,'rgba(255,255,255,.5)')}
+function forestDraw(dt){const f=S.forest,dn=S.done.includes('forest');if(!modalOpen)ftm+=dt;shim=Math.max(0,shim-dt);
+const sg=c.createLinearGradient(0,0,0,150);sg.addColorStop(0,'#26356a');sg.addColorStop(1,'#7a6a96');c.fillStyle=sg;c.fillRect(0,0,W,150);c.fillStyle='#e8e0c0';for(let i=0;i<25;i++){c.globalAlpha=.3+.3*Math.sin(ftm+i);c.fillRect((i*83)%W,(i*37)%90,1.5,1.5)}c.globalAlpha=1;
+for(let i=0;i<9;i++)E(i*100,140,70,50,i%2?'#2f4f5e':'#3a5a66');const gg=c.createLinearGradient(0,130,0,H);gg.addColorStop(0,'#3d6652');gg.addColorStop(1,'#2c4f40');c.fillStyle=gg;c.fillRect(0,130,W,H);
+c.lineCap='round';c.lineJoin='round';c.beginPath();PATHF.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.strokeStyle='#6e6150';c.lineWidth=42;c.stroke();c.strokeStyle='#9a8b72';c.lineWidth=32;c.stroke();
+for(let i=0;i<24;i++)E(40+(i*131)%720,170+(i*67)%290,4,2.5,i%3?'#6f9a62':'#a98a5a');
+[[150,392],[170,402],[135,404]].forEach(([x,y],i)=>{E(x,y,16,10,'rgba(190,235,205,'+(.1+.06*Math.sin(ftm*2+i))+')');flower(x,y,4,'#cfe9d8',0)});
+E(565,372,86,42,'#6f6a5e');E(565,372,78,36,'#4a7f8f');E(565,372,40+Math.sin(ftm*1.5)*3,16,'rgba(190,225,230,.25)');E(540,380,14,5,'#6f9a62');E(610,360,10,4,'#6f9a62');
+E(340,272,52,18,'#6b6a7e');E(340,270,44,14,'#7d7a8a');[[310,268],[340,262],[372,270]].forEach(([x,y])=>E(x,y,3,3,f.puz?'#f3e6a8':'#9a98aa'));
+E(245,314,22,13,'#6f6a5e');E(245,310,18,9,'#8a8678');
+if(f.puz&&!f.heart){E(296,222,16,10,'rgba(244,160,190,'+(.2+.15*Math.sin(ftm*3))+')');if(Math.random()<.08)burst(R(285,310),R(212,232),'#f4a0bb',1)}E(296,224,10,6,'#2a2420');
+TRF.forEach(([cx,b],i)=>{const sw=Math.sin(ftm+i)*2;E(cx,b+4,26,7,'rgba(0,0,0,.18)');rr(cx-7,b-50,14,52,4,'#5a4636');E(cx+sw,b-78,40,36,'#2f5a4a');E(cx+sw-14,b-66,26,22,'#3a6b55');E(cx+sw+12,b-94,24,18,'#44785f')});
+E(360,218,40,9,'rgba(0,0,0,.2)');c.strokeStyle='#5a4636';c.lineWidth=9;[[290,80],[430,80],[300,60]].forEach(([x,y])=>{c.beginPath();c.moveTo(360,125);c.quadraticCurveTo(360,95,x,y);c.stroke()});rr(335,100,50,116,12,'#5a4636');E(335,214,18,7,'#5a4636');E(385,214,18,7,'#5a4636');E(352,198,13,6,'#6f9a62');c.strokeStyle='#40301f';c.lineWidth=1.5;[348,360,372].forEach(x=>{c.beginPath();c.moveTo(x,120);c.lineTo(x+2,200);c.stroke()});
+E(360,72,135,62,'#2f5a4a');E(295,88,72,40,'#3a6b55');E(430,88,72,40,'#3a6b55');E(360,50,85,35,'#44785f');if(shim>0&&Math.random()<.4)burst(R(250,470),R(40,120),'#f3e6a8',1);
+const dx=700,dy=130;c.fillStyle='#18224a';c.beginPath();c.moveTo(dx-28,dy);c.lineTo(dx-28,dy-45);c.arc(dx,dy-45,28,Math.PI,0);c.lineTo(dx+28,dy);c.fill();if(dn){const eg=c.createLinearGradient(0,dy-70,0,dy);eg.addColorStop(0,'#24336e');eg.addColorStop(1,'#e8c27a');c.fillStyle=eg;c.fill()}c.strokeStyle='#c9a24f';c.lineWidth=2.5;c.stroke();c.fillStyle='#f3e6a8';[[-8,-60],[6,-72],[10,-48],[-12,-38]].forEach(([a,b])=>c.fillRect(dx+a,dy+b,2,2));
+if(!dn){rr(dx-7,dy-22,14,11,2,'#c9a24f');c.strokeStyle='#c9a24f';c.beginPath();c.arc(dx,dy-22,5,Math.PI,0);c.stroke()}else if(Math.random()<.06)burst(R(680,720),R(70,125),'#f3e6a8',1);
+if(f.puz&&f.heart&&!f.star&&f.mem.length===8){E(640,160,16,16,'rgba(255,220,130,'+(.25+.2*Math.sin(ftm*3))+')');if(Math.random()<.08)burst(R(625,655),R(145,175),'#ffd98a',1)}
+rr(14,380,8,90,3,'#5a4636');rr(76,392,8,78,3,'#5a4636');c.strokeStyle='#5a4636';c.lineWidth=6;c.beginPath();c.arc(48,392,34,Math.PI,0);c.stroke();
+DEC.forEach(d=>ff(d.x+(RM?0:Math.sin(ftm*.5+d.p)*14),d.y+(RM?0:Math.cos(ftm*.4+d.p)*10),.6+.3*Math.sin(ftm*1.5+d.p),2.4));
+MEMORIES.forEach((m,i)=>{const o=HOBF[i],mx=m.x+(RM?0:Math.sin(ftm*.6+i)*8),my=m.y+(RM?0:Math.cos(ftm*.5+i*1.3)*6);o.x=mx;o.y=my;const d=f.mem.includes(m.id),nr=Math.hypot(mx-P.x,my-P.y)<90;ff(mx,my,(d?.55:.9)+.1*Math.sin(ftm*2+i),nr?3.6:2.8);if(nr&&!d&&Math.random()<.05)burst(mx,my,'#f6f0c8',1)});
+movePlayer(dt);E(P.x,P.y-20,32,36,'rgba(255,240,200,.1)');girl(P.x,P.y,1.3,t,P.mv,P.dir,P.up);
+[0,W].forEach((x,i)=>{for(let k=0;k<5;k++){c.save();c.translate(x,H+8);c.rotate(-1+k*.5+Math.sin(ftm*1.2+k+i)*.04);E(0,-22,9,24,k%2?'#2f5a45':'#3d6b55');c.restore()}});
+sp=sp.filter(s=>(s.l-=dt*.8)>0);sp.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;c.fillStyle=s.col;c.globalAlpha=Math.max(0,s.l);c.fillRect(s.x,s.y,3,3);c.globalAlpha=1});
+c.fillStyle='rgba(40,40,90,.1)';c.fillRect(0,0,W,H);const v=c.createRadialGradient(400,240,220,400,240,520);v.addColorStop(0,'rgba(20,25,50,0)');v.addColorStop(1,'rgba(20,25,50,.35)');c.fillStyle=v;c.fillRect(0,0,W,H);
+if(anim){anim.t+=dt;const a=anim,r=Math.min(a.t/1.6,1);c.fillStyle='rgba(20,25,50,.25)';c.fillRect(0,0,W,H);const y=a.k=='fh'?a.y-r*60:a.y+(240-a.y)*r,x=a.k=='fh'?a.x:a.x+(400-a.x)*r;c.font='34px serif';c.textAlign='center';c.fillStyle=a.k=='fh'?'#f08aa8':'#e8b84a';c.fillText(a.k=='fh'?'♥':'★',x,y);if(a.t>1.8){const k=a.k;anim=null;k=='fh'?forestHeart():forestStar()}}
+near=null;if(!modalOpen&&!anim){const o=HOBF.filter(o=>o.v()).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y))[0];if(o&&Math.hypot(o.x-P.x,o.y-P.y)<66)near=o}
+const pr=$('#pr');pr.hidden=!near;if(near)pr.textContent='✦ '+near.l+' (E / tap)'}
+function starReady(){const f=S.forest;return f.puz&&f.heart&&!f.star&&f.mem.length===8}
+function finfo(t){sfx('pop');modal('<p>'+t+'</p>',[['Close',closeM]])}
+const HOBF=[...MEMORIES.map(m=>({id:m.id,x:m.x,y:m.y,l:'Little light',v:()=>1,a:()=>memOpen(m)})),
+{id:'tree',x:410,y:240,l:'Old tree',v:()=>1,a:()=>finfo('Some things grow quietly, becoming stronger with every passing season.')},
+{id:'pond',x:565,y:318,l:'Quiet pond',v:()=>1,a:()=>finfo('Even the smallest ripples can carry a thousand little reflections.')},
+{id:'flowers',x:150,y:392,l:'Glowing flowers',v:()=>1,a:()=>finfo('Magic sometimes grows in the places where we least expect to find it.')},
+{id:'stone',x:245,y:334,l:'Resting stone',v:()=>1,a:()=>finfo('There’s no need to hurry. Some beautiful moments are meant to be enjoyed slowly.')},
+{id:'cst',x:340,y:290,l:'Constellation stones',v:()=>1,a:forestPuzzle},
+{id:'fh',x:300,y:240,l:'Little hollow',v:()=>S.forest.puz&&!S.forest.heart,a:()=>{anim={k:'fh',t:0,x:296,y:222};sfx('heart')}},
+{id:'fs',x:640,y:170,l:'Golden glimmer',v:starReady,a:()=>{anim={k:'fs',t:0,x:640,y:160};sfx('star')}},
+{id:'fx',x:700,y:145,l:'Starlit doorway',v:()=>1,a:()=>S.done.includes('forest')?hillCard():toast('The starlit door is still closed. Follow the little lights first ♡')}];
+
+function phv(m,w,h){
+  modal(
+    "<h2>"+(m.title||'A little memory')+"</h2>"+
+    "<div id='pv' style='margin:0 auto;width:"+w+"px;height:"+h+
+    "px;max-width:100%;border:6px solid #f3ead8;border-radius:6px;"+
+    "box-shadow:0 2px 8px rgba(60,40,70,.3);overflow:hidden;"+
+    "background:#dfe4d6;display:flex;align-items:center;"+
+    "justify-content:center;color:#a9b49c;font-size:30px'>✦</div>"+
+    "<p id='pc' style='font-size:14px;margin:.8em 0 0'></p>",
+    [['Close',closeM]]
+  );
+
+  const cap=$('#pc');
+  cap.textContent=m.cap||'';
+
+  const photoSrc = m.src || '';
+
+  if(photoSrc){
+    const im=new Image();
+
+    im.onload=()=>{
+      const v=$('#pv');
+      if(!v)return;
+
+      v.textContent='';if(im.naturalHeight>im.naturalWidth*1.1){v.style.width='150px';v.style.height='min(266px,46vh)';}
+      im.style.cssText=
+        'display:block;width:100%;height:100%;'+
+        'object-fit:cover;object-position:'+
+        (m.pos||'50% 50%')+';';
+
+      v.append(im);
+    };
+
+    im.onerror=()=>{
+      const v=$('#pv');
+      if(!v)return;
+
+      v.style.fontSize='12px';
+      v.style.padding='8px';
+      v.style.boxSizing='border-box';
+      v.textContent='Photo could not load. Check the image path or upload it using Photos ♡.';
+    };
+
+    im.src=photoSrc;
+  }
+}
+
+function memOpen(m){const f=S.forest;if(!f.mem.includes(m.id)){f.mem.push(m.id);save();hud();sfx('pop');burst(P.x,P.y-30,'#f6f0c8',10);toast('Memories discovered: '+f.mem.length+'/8',2500)}phv(m,240,180);if(f.mem.length===8&&starReady())setTimeout(()=>toast('Something golden glimmers along the path ✦',3500),600)}
+function memPanel(){const f=S.forest;modal('<h2>Memories discovered: '+f.mem.length+'/8</h2><div class=bt>'+MEMORIES.map((m,i)=>f.mem.includes(m.id)?"<button class='tile' data-mi='"+i+"'>✦ "+(i+1)+'</button>':"<button class='tile' disabled style='opacity:.4'>·</button>").join('')+'</div>',[['Close',closeM]]);document.querySelectorAll('[data-mi]').forEach(b=>b.onclick=()=>phv(MEMORIES[+b.dataset.mi],240,180))}
+function forestPuzzle(){const SL=[[70,60,11],[165,40,8],[120,135,5]],pl={};let sel=null;
+function draw(){const done=S.forest.puz||[0,1,2].every(i=>pl[i]),L=done?'#f3e6a8':'#a9bfd0',pt=[[30,115],SL[0],[125,90],SL[1],[205,100]];
+$('#fz').innerHTML="<svg viewBox='0 0 240 150' width='260' class='"+(done?'bloom':'')+"'><rect width='240' height='150' rx='12' fill='#1d2850'/><polyline points='"+pt.map(p=>p[0]+','+p[1]).join(' ')+"' fill='none' stroke='"+L+"' stroke-opacity='"+(done?.9:.35)+"' stroke-dasharray='"+(done?'':'3 4')+"'/><line x1='125' y1='90' x2='120' y2='135' stroke='"+L+"' stroke-opacity='"+(done?.9:.35)+"' stroke-dasharray='"+(done?'':'3 4')+"'/>"+[[30,115],[125,90],[205,100]].map(p=>"<circle cx='"+p[0]+"' cy='"+p[1]+"' r='4' fill='#f3e6a8'/>").join('')+SL.map((s,i)=>(pl[i]||S.forest.puz)?"<circle cx='"+s[0]+"' cy='"+s[1]+"' r='"+s[2]+"' fill='#f3e6a8'/>":"<circle data-s='"+i+"' cx='"+s[0]+"' cy='"+s[1]+"' r='"+s[2]+"' fill='#9fe0cf' fill-opacity='.12' stroke='#9fe0cf' stroke-dasharray='3 3' stroke-width='1.5' style='cursor:pointer'/>").join('')+'</svg>';
+$('#ft').innerHTML=done?'':[1,2,0].filter(i=>!pl[i]).map(i=>"<button class='tile "+(sel===i?'sel':'')+"' data-p='"+i+"'><svg viewBox='0 0 40 40'><circle cx='20' cy='20' r='"+SL[i][2]+"' fill='#e8d98a'/></svg></button>").join('');
+$('#fm').innerHTML=done?'You found their way home!<br><i>Every little light has a place, and every precious memory deserves to shine.</i>':'Some little lights have lost their way. Can you help them find their places?';
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{sel=+b.dataset.p;sfx('pick');draw()});
+document.querySelectorAll('[data-s]').forEach(e=>e.onclick=()=>{const i=+e.dataset.s;if(sel==null){$('#fm').textContent='Pick a little light first ♡';return}if(sel===i){pl[i]=1;sel=null;sfx('place');draw();if([0,1,2].every(k=>pl[k]))win()}else{sfx('oops');sel=null;draw();$('#fm').textContent='Almost! This spot wants a different light ♡'}})}
+function win(){if(S.forest.puz)return;S.forest.puz=1;save();hud();sfx('bloom');shim=5;$('#fz').insertAdjacentHTML('beforeend',"<i class='sp' style='left:12%'>✦</i><i class='sp' style='left:50%;animation-delay:.3s'>✦</i><i class='sp' style='left:86%;animation-delay:.6s'>✦</i>");setTimeout(()=>{closeM();toast('Something glows softly near the old tree ✦',4000)},3400)}
+modal("<h2>The Firefly Constellation</h2><div id='fz' style='position:relative'></div><p id='fm'></p><div id='ft' class='bt'></div>",[['Close',closeM]]);draw()}
+function forestHeart(){modal('<h2>♡</h2><p class=l style="animation-delay:.3s">Amma, some hugs stay with us long after the moment has passed.</p><p class=l style="animation-delay:2s">This little surprise is a reminder that you deserve comfort, warmth, and all the love you have given to everyone around you.</p><p class=l style="animation-delay:3.8s">There’s a real teddy bear waiting for you, with lots of love from your little girl. ♡</p>',[...(S.forest.heart?[]:[['I’ll find my cuddly surprise ♡',()=>{S.forest.heart=1;save();hud();closeM();if(starReady())toast('Something golden glimmers along the path ✦',4000);else toast('The heart is safe. Keep following the little lights ✦',4000)}]]),['Close',closeM]])}
+function forestStar(){modal('<h2>✦ KEEPER OF PRECIOUS MEMORIES ✦</h2><div style="font-size:54px;color:#e8b64a">★</div><p>You followed the little lights, rediscovered precious moments, and reminded this forest that beautiful memories never truly fade.</p>',[...(S.forest.star?[]:[['Claim my star ✦',()=>{S.forest.star=1;save();hud();sfx('ach');closeM();forestCheck()}]]),['Close',closeM]])}
+function forestCheck(){const f=S.forest;if(S.done.includes('forest')||!(f.puz&&f.heart&&f.star&&f.mem.length===8))return;S.done.push('forest');if(!S.unl.includes('hill'))S.unl.push('hill');save();hud();toast('Forest completed!',2500);setTimeout(()=>{sfx('unlock');hillCard()},2800)}
+function hillCard(){modal('<h2>The Sky Is Calling</h2><p>You have followed the little lights and gathered the memories they held. Now, a whole sky of new wonders is waiting for you.</p>',[['Continue the adventure →',()=>{closeM();fade(()=>{S.loc='hill';save();scene='preview';$('#pr').hidden=true;hud();hillPrev()})}],['Stay in the forest',closeM]])}
+function hillPrev(){modal('<h2>The Hill of a Thousand Stars</h2><p>A winding path leads out of the trees toward an open, starry sky. This chapter will continue from the forest, with all your treasures kept safe.</p><p><i>This part of the universe is still being made ♡</i></p>',[['Back to the forest',()=>{closeM();fade(enterForest)}]],false)}
+function forestPrev(){enterForest()}
+function enterForest(){S.loc='forest';S.unl.includes('forest')||S.unl.push('forest');save();Object.assign(P,{x:90,y:425,tx:null,ty:null});scene='forest';anim=null;$('#pr').hidden=true;setLoc('forest');hud();if(!S.forest.wel)modal('<h2>THE WHISPERING FOREST</h2><p>Some memories never really leave us. They wait quietly in little corners of our hearts, glowing softly until we find our way back to them.</p>',[['Follow the little lights ✨',()=>{S.forest.wel=1;save();closeM()}]])}
+function go(l){closeM();fade(()=>{if(l==='home')enterHome();else if(l==='forest')enterForest();else{S.loc='garden';save();Object.assign(P,{x:130,y:420,tx:null,ty:null});scene='garden';$('#pr').hidden=true;setLoc('garden');hud()}})}
+$('#mnu').onclick=()=>modal('<h2>Menu</h2><p>Your adventure is saved automatically.</p>',[...[['garden','Go to the garden'],['home','Go to the cozy home'],['forest','Go to the whispering forest']].filter(([k])=>S.unl.includes(k)&&S.loc!==k).map(([k,t])=>[t,()=>go(k)]),['Restart Game',askRestart],['Resume',closeM]]);
+$('#inv').onclick=()=>modal('<h2>Your collection</h2>'+(S.heart?'<p>♡ Garden heart</p>':'')+(S.star?'<p>✦ Guardian of the Blooming Garden</p>':'')+(S.home.heart?'<p>♡ Home heart</p>':'')+(S.home.star?'<p>✦ Keeper of Our Little Memories</p>':'')+(S.forest.heart?'<p>♡ Forest heart</p>':'')+(S.forest.star?'<p>✦ Keeper of Precious Memories</p>':'')+(!S.heart&&!S.star?'<p>Nothing yet. Keep exploring!</p>':''),[...(S.heart?[['Garden heart ♡',heartCard]]:[]),...(S.home.heart?[['Home heart ♡',homeHeart]]:[]),...(S.forest.heart?[['Forest heart ♡',forestHeart]]:[]),...(S.unl.includes('forest')?[['Memories ✦ '+S.forest.mem.length+'/8',memPanel]]:[]),['Close',closeM]]);
+const mc=document.createElement('span');mc.id='mc';mc.style.cssText='font-size:13px;margin-right:auto;padding-left:4px;cursor:pointer';mc.onclick=memPanel;$('#tools').prepend(mc);
+const hud1=hud;hud=function(){hud1();const f=S.forest;mc.textContent=S.loc==='forest'?'✦ Memories discovered: '+f.mem.length+'/8':'';if(S.loc==='forest')$('#obj').innerHTML='<b>Whispering Forest</b> '+(S.done.includes('forest')?'Completed ✓':'In progress')+'<br>Memories discovered: '+f.mem.length+'/8<br>Constellation: '+(f.puz?'Restored':'Not restored')+'<br>Heart: '+(f.heart?'Collected':f.puz?'Revealed':'Hidden')+'<br>Star: '+(f.star?'Collected':starReady()?'Revealed':'Hidden')};hud();
+
+/* ================= CHAPTER 4: THE HILLS OF A THOUSAND HEARTS ================= */
+function newHill(){return{sum:0,heart:0,star:0,wel:0,pl:[],ready:0,end:0,fdone:0}}
+S.hill=S.hill||newHill();
+/* >>> THE EIGHT PLANETS: edit ONLY this list. src = photo path (folder assets/photos/planets/, e.g. 'assets/photos/planets/jupiter.jpg'), pos = crop focus ('50% 30%'), heading / quality / msg = your text (use \n\n for a new paragraph), cap = optional short caption. Keep id/k/c/r unchanged. <<< */
+const PL=[
+{id:'planet-jupiter',name:'Jupiter',quality:'The Protector',heading:'Jupiter, the Protector.',msg:'You have a way of making the people you love feel safe, even when the world outside feels uncertain.\n\nYour love is a shelter, and your presence makes difficult days feel a little easier.',src:'assets/planet1.jpeg',pos:'50% 50%',cap:'',k:'bands',c:['#f1d09a','#c58d4a','#e9b56b'],r:30},
+{id:'planet-venus',name:'Venus',quality:'The Heart of Kindness',heading:'Venus, the Heart of Kindness.',msg:'Your kindness lives in the little things you do, the care you give, and the warmth you bring into ordinary moments.\n\nYou make love feel like something we can see, hear, and feel every day.',src:'assets/planet2.jpeg',pos:'50% 50%',cap:'',k:'clouds',c:['#f0c0c0','#c98490','#f7dede'],r:24},
+{id:'planet-saturn',name:'Saturn',quality:'The Resilient One',heading:'Saturn, the Resilient One.',msg:'You have carried responsibilities, faced difficult days, and continued moving forward with a strength that deserves to be celebrated.\n\nYour courage reminds us that strength can be gentle, too.',src:'assets/planet3.jpeg',pos:'50% 50%',cap:'',k:'rings',c:['#d6c8f0','#9a82b8','#f0dba0'],r:22},
+{id:'planet-earth',name:'Earth',quality:'Our Home',heading:'Earth, Our Home.',msg:'No matter where life takes us, the feeling of home has always been connected to you.\n\nYour love makes ordinary places special and reminds us where we belong.',src:'assets/planetearth.jpeg',pos:'50% 50%',cap:'',k:'earth',c:['#a8c8e0','#5f87a8','#8ea98a'],r:26},
+{id:'planet-mars',name:'Mars',quality:'The Warrior',heading:'Mars, The Warrior.',msg:'You have a strength that does not always need to announce itself.\n\nEven when things are difficult, you keep showing up, caring, trying, and moving forward.\n\nYour strength inspires more than you know.',src:'assets/planet5.jpeg',pos:'50% 50%',cap:'',k:'spots',c:['#e0a58a','#b4684f','#7e4636'],r:20},
+{id:'planet-neptune',name:'Neptune',quality:'The Dreamer',heading:'Neptune, The Dreamer.',msg:'There is still so much beauty to discover, so many little joys to experience, and so many dreams waiting to become real.\n\nYou deserve a world that gives back the wonder you have given to others.',src:'assets/planet6.jpeg',pos:'50% 50%',cap:'',k:'swirl',c:['#8fd0d0','#4a6aa8','#c8d6f4'],r:26},
+{id:'planet-uranus',name:'Uranus',quality:'The Original',heading:'Uranus, The Original.',msg:'There is nobody quite like you.\n\nYour little habits, your way of seeing things, your laughter, your opinions, and all the details that make you yourself are what make you irreplaceable.',src:'assets/planet7.jpeg',pos:'50% 50%',cap:'',k:'tilt',c:['#c4ecdc','#7fb4b8','#d9ccf0'],r:22},
+{id:'planet-mercury',name:'Mercury',quality:'The Little Spark',heading:'Mercury, The Little Spark.',msg:'Your mind, your energy, and the little ways you notice and respond to the world make life more interesting.\n\nYou bring a special kind of spark into the lives of the people around you.',src:'assets/planet8.jpeg',pos:'50% 50%',cap:'',k:'craters',c:['#f4e6c0','#c9b27c','#a8946a'],r:18}];
+const SOLHL=[[150,330,30,22],[560,350,40,28],[600,300,30,25],[250,265,30,24],[300,420,30,22]],PATHH=[[90,445],[220,410],[330,380],[260,330],[380,305],[500,282],[430,255],[400,238]],HS=Array.from({length:90},()=>({x:rnd(),y:rnd(),r:1+rnd()*1.3,p:rnd()*6})),HL=Array.from({length:14},()=>({x:rnd()*W,y:270+rnd()*190})),CONF=Array.from({length:45},(_,i)=>({x:rnd()*W,y:rnd()*H,v:14+rnd()*18,p:rnd()*6,c:['#f4b6c8','#f0d28a','#f3ead8','#cbbde0'][i%4]}));let ftm2=0,fin=0,fpb=0;
+function ridge(b,a,f,ph,col){c.fillStyle=col;c.beginPath();c.moveTo(0,H);for(let x=0;x<=W;x+=20)c.lineTo(x,b+Math.sin(x*f+ph)*a);c.lineTo(W,H);c.fill()}
+function dpl(p,x,y,r){c.save();c.translate(x,y);const ac=p.c[2];if(p.k=='rings'||p.k=='tilt'){c.strokeStyle=ac;c.lineWidth=p.k=='rings'?4:2;c.globalAlpha=.6;c.beginPath();p.k=='rings'?c.ellipse(0,0,r*1.9,r*.5,-.3,Math.PI,2*Math.PI):c.ellipse(0,0,r*.45,r*1.7,.2,Math.PI*1.5,Math.PI*2.5);c.stroke();c.globalAlpha=1}
+const g=c.createRadialGradient(-r*.35,-r*.35,r*.1,0,0,r);g.addColorStop(0,p.c[0]);g.addColorStop(1,p.c[1]);c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,7);c.fill();c.save();c.beginPath();c.arc(0,0,r,0,7);c.clip();c.strokeStyle=ac;c.fillStyle=ac;
+if(p.k=='bands'){c.globalAlpha=.5;for(let j=-2;j<=2;j++)c.fillRect(-r,j*r*.35-r*.08,2*r,r*.16)}
+else if(p.k=='clouds'||p.k=='swirl'){c.globalAlpha=.55;c.lineWidth=2.5;for(let j=0;j<3;j++){c.beginPath();c.arc(-r*.2+j*4,-r*.6+j*r*.6,r*(.7-j*.1),.3,Math.PI*(1+j*.15));c.stroke()}}
+else if(p.k=='earth'){[[-.3,-.2,.35,.25],[.35,.25,.3,.35],[0,.6,.25,.15]].forEach(([a,b,w,h2])=>{c.beginPath();c.ellipse(a*r,b*r,w*r,h2*r,.4,0,7);c.fill()});c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.ellipse(-.4*r,.35*r,.4*r,.1*r,0,0,7);c.fill()}
+else{c.globalAlpha=.45;[[-.4,-.2,.2],[.3,.3,.25],[.1,-.5,.15],[-.2,.5,.12]].forEach(([a,b,w])=>{c.beginPath();c.arc(a*r,b*r,w*r,0,7);c.fill()});if(p.k=='spots'){c.fillStyle='#f5ece4';c.globalAlpha=.6;c.beginPath();c.ellipse(0,-r,r*.5,r*.18,0,0,7);c.fill()}}
+c.restore();c.globalAlpha=.8;c.strokeStyle=ac;if(p.k=='rings'){c.lineWidth=4;c.beginPath();c.ellipse(0,0,r*1.9,r*.5,-.3,0,Math.PI);c.stroke()}if(p.k=='tilt'){c.lineWidth=2;c.beginPath();c.ellipse(0,0,r*.45,r*1.7,.2,Math.PI*.5,Math.PI*1.5);c.stroke()}c.restore()}
+function hillDraw(dt){const h=S.hill;if(!modalOpen)ftm2+=dt;if(fin){fpb=Math.min(1,fpb+dt*.35);P.x=400;P.y=335;P.mv=0}
+const prog=(h.star||fin)?1:Math.min(1,Math.max(0,(450-P.y)/230));const sg=c.createLinearGradient(0,0,0,230);sg.addColorStop(0,'#0e1236');sg.addColorStop(.55,'#4a3a7a');sg.addColorStop(1,'#d9a0a0');c.fillStyle=sg;c.fillRect(0,0,W,260);
+c.fillStyle='#f3ead0';HS.forEach((s,i)=>{if(i>=20+70*prog)return;c.globalAlpha=(RM?.7:.45+.45*Math.sin(ftm2*1.3+s.p))*(i<20?1:prog);c.fillRect(s.x*W,s.y*190,s.r,s.r)});c.globalAlpha=1;
+ridge(200,14,.008,0,'#3b3a73');ridge(222,16,.011,2,'#34406a');ridge(250,18,.009,4,'#2e5a63');ridge(300,10,.006,1,'#2f5f52');ridge(380,14,.005,3,'#356b57');c.fillStyle='#2c5a49';c.fillRect(0,440,W,H);
+c.fillStyle='#e8c27a';HL.forEach((l,i)=>{c.globalAlpha=.4+.3*Math.sin(ftm2*2+i);c.fillRect(l.x,l.y,2,2)});c.globalAlpha=1;
+c.lineCap='round';c.lineJoin='round';c.beginPath();PATHH.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.strokeStyle='#8a7a78';c.lineWidth=36;c.stroke();c.strokeStyle='#b9a58f';c.lineWidth=26;c.stroke();
+for(let i=0;i<50;i++){const x=(i*157)%W,y=270+(i*89)%190;E(x,y,3,2,['#f4b6c8','#f3ead8','#cbbde0'][i%3])}
+E(400,242,84,22,'#585a7c');E(400,239,76,18,'#8c8aac');[[165,341],[580,364],[615,312],[265,277],[315,431]].forEach(([x,y])=>{E(x,y,18,11,'#6f7090');E(x,y-3,14,8,'#8a8cab')});
+if(h.sum&&!h.heart){E(470,248,18,10,'rgba(244,160,190,'+(.2+.15*Math.sin(ftm2*3))+')');if(Math.random()<.08)burst(R(455,485),R(238,258),'#f4a0bb',1)}flower(470,248,3,'#e9a5b8',0);
+if(h.heart&&!h.star){E(400,224,14,14,'rgba(255,220,130,'+(.3+.2*Math.sin(ftm2*3))+')');c.fillStyle='#e8b84a';c.font='16px serif';c.textAlign='center';c.fillText('★',400,230+Math.sin(ftm2*2)*2)}
+if(h.star)PL.forEach((p,i)=>{const bx=62+i*96,by=i%2?118:70,ay=95-45*Math.sin(Math.PI*i/7),k=fin?fpb:0,x=bx,y=by+(ay-by)*k+(RM?0:Math.sin(ftm2*.5+i*1.3)*3);p._x=x;p._y=y;dpl(p,x,y,p.r);if(!h.pl.includes(p.id)){c.strokeStyle='rgba(243,234,208,'+(.25+.2*Math.sin(ftm2*2+i))+')';c.lineWidth=1.5;c.beginPath();c.arc(x,y,p.r+8,0,7);c.stroke()}});
+if(!fin)movePlayer(dt);E(P.x,P.y-20,32,36,'rgba(255,240,220,.08)');girl(P.x,P.y,1.3,t,P.mv,P.dir,P.up);
+sp=sp.filter(s=>(s.l-=dt*.8)>0);sp.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;c.fillStyle=s.col;c.globalAlpha=Math.max(0,s.l);c.fillRect(s.x,s.y,3,3);c.globalAlpha=1});
+if(fin){c.fillStyle='rgba(10,12,40,.28)';c.fillRect(0,0,W,H);CONF.forEach(q=>{q.y+=q.v*dt;if(q.y>H)q.y=-6;c.fillStyle=q.c;c.globalAlpha=.8;c.beginPath();c.ellipse(q.x+Math.sin(ftm2+q.p)*14,q.y,4,2,ftm2+q.p,0,7);c.fill();c.globalAlpha=1})}
+const v=c.createRadialGradient(400,240,240,400,240,540);v.addColorStop(0,'rgba(10,12,40,0)');v.addColorStop(1,'rgba(10,12,40,.3)');c.fillStyle=v;c.fillRect(0,0,W,H);
+if(anim){anim.t+=dt;const a=anim,r=Math.min(a.t/1.6,1);c.fillStyle='rgba(10,12,40,.22)';c.fillRect(0,0,W,H);const y=a.k=='h2h'?a.y-r*60:a.y+(100-a.y)*r;c.font='34px serif';c.textAlign='center';c.fillStyle=a.k=='h2h'?'#f08aa8':'#e8b84a';c.fillText(a.k=='h2h'?'♥':'★',a.x,y);if(a.t>1.8){const k=a.k;anim=null;k=='h2h'?hillHeart():hillStar()}}
+if(!h.sum&&!modalOpen&&!anim&&P.y<252&&Math.abs(P.x-400)<110)summitCard();if(h.ready&&!h.end&&!modalOpen&&!anim)startFinale();
+near=null;if(!modalOpen&&!anim&&!fin){const o=HOBH.filter(o=>o.v())[0]&&HOBH.filter(o=>o.v()).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y))[0];if(o&&Math.hypot(o.x-P.x,o.y-P.y)<66)near=o}
+const pr=$('#pr');pr.hidden=!near;if(near)pr.textContent='✦ '+near.l+' (E / tap)'}
+const HOBH=[{id:'hh',x:470,y:252,l:'Rose-colored glimmer',v:()=>S.hill.sum&&!S.hill.heart,a:()=>{anim={k:'h2h',t:0,x:470,y:240};sfx('heart')}},{id:'hs',x:400,y:240,l:'Little golden star',v:()=>S.hill.heart&&!S.hill.star,a:()=>{anim={k:'h2s',t:0,x:400,y:225};sfx('star')}}];
+function hillTap(x,y){const h=S.hill;if(!h.star||modalOpen||anim)return false;const p=PL.find(p=>p._x!=null&&Math.hypot(p._x-x,p._y-y)<Math.max(p.r*(p.k=='rings'?1.8:1)+14,30));if(!p)return false;planetCard(p);return true}
+function planetCard(p){const h=S.hill;if(!h.pl.includes(p.id)){h.pl.push(p.id);sfx('pop');if(h.pl.length===8){h.ready=1;sfx('ach')}save();hud()}
+phv({title:p.heading,src:p.src,pos:p.pos,cap:p.msg+(p.cap?'\n\n'+p.cap:'')},230,172);const pc=$('#pc');pc.style.whiteSpace='pre-line';pc.insertAdjacentHTML('beforebegin','<p style="margin:.7em 0 0"><i>'+p.quality+'</i></p>')}
+function planetPanel(){const h=S.hill;modal('<h2>Worlds of Amma discovered: '+h.pl.length+'/8</h2><div class=bt>'+PL.map((p,i)=>h.pl.includes(p.id)?"<button data-pi='"+i+"'>"+p.name+'</button>':"<button disabled style='opacity:.4'>·</button>").join('')+'</div>',[['Close',closeM]]);document.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>planetCard(PL[+b.dataset.pi]))}
+function summitCard(){modal('<h2>✦</h2><p>You made it, little explorer. Look how much magic was waiting above the clouds.</p>',[['Look at the stars ✦',()=>{S.hill.sum=1;save();hud();sfx('place');closeM()}]],false);sfx('bloom')}
+function hillHeart(){modal('<h2>♡</h2><p class=l style="animation-delay:.3s">Amma, we made it to the top!</p><p class=l style="animation-delay:1.6s">And just like every beautiful journey deserves a celebration, today deserves one too.</p><p class=l style="animation-delay:3.2s">There’s a real birthday cake waiting for you, made even sweeter by all the love surrounding you.</p><p class=l style="animation-delay:5s">Because today isn’t just another day. It’s the day someone truly extraordinary came into this world. ♡</p>',[...(S.hill.heart?[]:[['Let’s celebrate, Amma ♡',()=>{S.hill.heart=1;save();hud();closeM();toast('A little golden star glimmers on the stone ✦',4000)}]]),['Close',closeM]])}
+function hillStar(){modal('<h2>✦ GUARDIAN OF A THOUSAND HEARTS ✦</h2><div style="font-size:54px;color:#e8b64a">★</div><p>You climbed every hill, followed every little light, and reached a sky that holds one more way to celebrate the person you love.</p>',[...(S.hill.star?[]:[['Open the universe ✦',()=>{S.hill.star=1;save();hud();sfx('ach');closeM();toast('Eight little worlds appear in the sky. Tap one ✦',5000)}]]),['Close',closeM]])}
+const FIN=document.createElement('div');FIN.style.cssText="position:absolute;left:4%;right:4%;top:23%;text-align:center;pointer-events:none;opacity:0;transition:opacity 3s;color:#f6e7c8;text-shadow:0 2px 10px rgba(14,18,54,.9);display:none";FIN.innerHTML="<div style='font-size:3em;letter-spacing:.08em;line-height:1.1;color:#f0d28a'>HAPPY BIRTHDAY WARRIOR</div><p style='font-size:1.05em;margin:.6em auto;max-width:34em;line-height:1.5'>To the woman who makes our world brighter, our home warmer, and our lives more beautiful just by being herself.</p><div style=\"font-family:'Segoe Script','Brush Script MT',cursive;font-size:1.7em;color:#f4c4cc\">Made with all my love, by Hani ♡</div>";$('#stage').append(FIN);
+const FB=document.createElement('div');FB.style.cssText='position:fixed;bottom:12px;left:0;right:0;display:none;justify-content:center;gap:10px;z-index:4;opacity:0;transition:opacity 2s';FB.innerHTML="<button id='fb1'>Relive the magic ↻</button><button id='fb2'>Explore the universe ✦</button>";document.body.append(FB);
+$('#fb1').onclick=askRestart;$('#fb2').onclick=()=>{S.hill.fdone=1;fin=0;save();FIN.style.opacity=0;FB.style.opacity=0;hud();Object.assign(P,{x:400,y:262})};
+function startFinale(sk){const h=S.hill;h.end=1;if(!S.done.includes('hill'))S.done.push('hill');save();fin=1;fpb=sk?1:0;if(!sk)sfx('ach');hud();FIN.style.opacity=0;FB.style.opacity=0;setTimeout(()=>{if(fin)FIN.style.opacity=1},sk?200:3500);setTimeout(()=>{if(fin)FB.style.opacity=1},sk?600:7500)}
+function hillPrev(){enterHill()}
+function enterHill(){S.loc='hill';S.unl.includes('hill')||S.unl.push('hill');save();Object.assign(P,{x:90,y:440,tx:null,ty:null});scene='hill';anim=null;fin=0;$('#pr').hidden=true;setLoc('hill');hud();if(S.hill.end&&!S.hill.fdone)startFinale(1);else if(!S.hill.wel)modal('<h2>THE HILLS OF A THOUSAND HEARTS</h2><p>Every little light has led you here. Beyond these hills lies a sky full of wonders, a heart full of love, and one last surprise made just for you.</p>',[['Let’s reach the stars ♡',()=>{S.hill.wel=1;save();closeM()}]])}
+function go(l){closeM();fade(()=>{if(l==='home')enterHome();else if(l==='forest')enterForest();else if(l==='hill')enterHill();else{S.loc='garden';save();Object.assign(P,{x:130,y:420,tx:null,ty:null});scene='garden';$('#pr').hidden=true;setLoc('garden');hud()}})}
+$('#mnu').onclick=()=>modal('<h2>Menu</h2><p>Your adventure is saved automatically.</p>',[...[['garden','Go to the garden'],['home','Go to the cozy home'],['forest','Go to the whispering forest'],['hill','Go to the hills']].filter(([k])=>S.unl.includes(k)&&S.loc!==k).map(([k,t])=>[t,()=>go(k)]),['Restart Game',askRestart],['Resume',closeM]]);
+const inv1=$('#inv').onclick;$('#inv').onclick=()=>{inv1();const b=document.querySelector('#m .bt');if(!b)return;const add=(t,f)=>{const e=document.createElement('button');e.textContent=t;e.onclick=f;b.prepend(e)};if(S.hill.star)add('Worlds of Amma ✦ '+S.hill.pl.length+'/8',planetPanel);if(S.hill.heart)add('Birthday heart ♡',hillHeart)};
+mc.onclick=()=>S.loc==='hill'?planetPanel():memPanel();
+const hud2=hud;hud=function(){hud2();const h=S.hill,sh=scene==='hill'&&h.end&&!h.fdone;FIN.style.display=sh?'':'none';FB.style.display=sh?'flex':'none';if(S.loc==='hill'){mc.textContent=h.star?'✦ Worlds of Amma discovered: '+h.pl.length+'/8':'';$('#obj').innerHTML='<b>Hills of a Thousand Hearts</b> '+(S.done.includes('hill')?'Completed ✓':'In progress')+'<br>Summit: '+(h.sum?'Reached ✓':'Climb the hill')+'<br>Heart: '+(h.heart?'Collected':h.sum?'Revealed':'Hidden')+'<br>Star: '+(h.star?'Collected':h.heart?'Revealed':'Hidden')+'<br>Worlds of Amma discovered: '+h.pl.length+'/8'}};hud();
+requestAnimationFrame(loop);
+</script></body></html>
